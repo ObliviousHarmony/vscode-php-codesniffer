@@ -4,7 +4,9 @@ namespace VSCode\PHP_CodeSniffer\Reports;
 
 use VSCode\PHP_CodeSniffer\VSCodeFile;
 
+// @phpcs:disable
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'VSCodeReport.php';
+// @phpcs:enable
 
 /**
  * A custom report for returning information from PHPCS in a way that the
