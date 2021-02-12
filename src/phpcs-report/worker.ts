@@ -185,6 +185,7 @@ export class Worker {
 
             if (code !== 0) {
                 console.error(pendingReport, pendingError);
+                request.onComplete(Response.fromRaw(request.type, ''));
                 return;
             }
 
