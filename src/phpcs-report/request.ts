@@ -1,0 +1,70 @@
+import { ReportType, Response } from './response';
+
+/**
+ * The request options for PHPCS.
+ */
+export interface RequestOptions {
+    workingDirectory: string,
+    executable: string;
+    standard: string;
+}
+
+/**
+ * The "CodeAction" request type for PHPCS.
+ */
+export interface CodeActionRequest {
+    code: string;
+    line: number;
+    character: number;
+}
+
+/**
+ * The "Format" request type for PHPCS.
+ */
+export interface FormatRequest {
+    start?: {
+        line: number,
+        character: number
+    },
+    end?: {
+        line: number,
+        character: number
+    }
+}
+
+/**
+ * A type utility for providing safety to requests based on the type of report they are for.
+ */
+type RequestContent<T extends ReportType> = [T] extends [ReportType.CodeAction] ? CodeActionRequest :
+    [T] extends [ReportType.Format] ? FormatRequest :
+    null;
+
+/**
+ * An interface describing the shape of a request to the worker.
+ */
+export interface Request<T extends ReportType> {
+    /**
+     * The type of report that is being requested.
+     */
+    type: T;
+
+    /**
+     * The content for the document that the report is being generated for.
+     */
+    documentContent: string;
+
+    /**
+     * Any options that are needed for the request.
+     */
+    options: RequestOptions;
+
+    /**
+     * The data for the request.
+     */
+    data: RequestContent<T>;
+
+    /**
+     * A callback to execute once the report has been generated.
+     */
+    onComplete: (response: Response<T>) => void;
+}
