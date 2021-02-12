@@ -1,7 +1,19 @@
-name: Coding Standards
-on: [push,pull_request]
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+    branches:
+      - main
+      - release/*
+
+
 jobs:
-  build:
+  linux:
+    name: Linux
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -15,3 +27,6 @@ jobs:
 
     - name: Lint PHP
       run: composer run-script lint
+
+    - name: Unit Tests
+      run: npm run test
