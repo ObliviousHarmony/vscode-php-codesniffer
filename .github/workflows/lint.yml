@@ -1,0 +1,17 @@
+name: Coding Standards
+on: [push,pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: php-actions/composer@v5
+
+    - name: Install Modules
+      run: npm install
+
+    - name: Lint JavaScript
+      run: npm run lint
+
+    - name: Lint PHP
+      run: composer run-script lint
