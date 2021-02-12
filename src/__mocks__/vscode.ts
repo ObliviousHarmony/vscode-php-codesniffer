@@ -10,15 +10,34 @@ const MockTextDocument = jest.fn().mockImplementation(() => {
         fileName: 'Test',
         isUntitled: false,
         languageId: 'php',
+        version: 0,
+        isDirty: false,
+        isClosed: false,
+        save: jest.fn(),
+        eol: 1, // EndOfLine.LF
         lineCount: 1,
+        lineAt: jest.fn(),
+        offsetAt: jest.fn(),
+        positionAt: jest.fn(),
         getText: jest.fn(),
-    }
+        getWordRangeAtPosition: jest.fn(),
+        validateRange: jest.fn(),
+        validatePosition: jest.fn()
+    };
+});
+
+const MockCancellationToken = jest.fn().mockImplementation(() => {
+    return {
+        isCancellationRequested: false,
+        onCancellationRequested: jest.fn()
+    };
 });
 
 const CancellationTokenSource = jest.fn().mockImplementation(() => {
     return {
-        isCancellationRequested: false,
-        onCancellationRequested: jest.fn()
+        token: new MockCancellationToken(),
+        cancel: jest.fn(),
+        dispose: jest.fn()
     };
 });
 
@@ -42,6 +61,19 @@ const Diagnostic = jest.fn().mockImplementation((range, message: string, severit
 });
 
 const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
+
+const MockDiagnosticCollection = jest.fn().mockImplementation(() => {
+    return {
+        name: 'Test',
+        set: jest.fn(),
+        delete: jest.fn(),
+        clear: jest.fn(),
+        forEach: jest.fn(),
+        get: jest.fn(),
+        has: jest.fn(),
+        dispose: jest.fn()
+    };
+});
 
 const CodeActionKind = {
     QuickFix: { value: 'quickfix' }
@@ -69,12 +101,14 @@ const languages = {
 };
 
 export {
+    MockCancellationToken,
     CancellationTokenSource,
     Uri,
     MockTextDocument,
     Range,
     Diagnostic,
     DiagnosticSeverity,
+    MockDiagnosticCollection,
     CodeAction,
     CodeActionKind,
     TextEdit,
