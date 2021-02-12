@@ -1,8 +1,7 @@
 import { mocked } from 'ts-jest/utils';
 import { Worker } from '../worker';
 import { WorkerPool } from '../worker-pool';
-import * as child_process from 'child_process';
-import type { CancellationToken } from 'vscode';
+import { MockCancellationToken } from '../../__mocks__/vscode';
 
 jest.mock('../worker', () => {
     return {
@@ -20,14 +19,6 @@ jest.mock('../worker', () => {
 
 describe('WorkerPool', () => {
     const MockedWorker = mocked(Worker, true);
-
-    beforeAll(() => {
-        try {
-            child_process.execFileSync('phpcs', [ '--version' ]);
-        } catch (e) {
-            throw new Error('This test requires PHPCS to be installed globally.')
-        }
-    });
 
     afterEach(() => {
         MockedWorker.mockClear();
@@ -72,10 +63,7 @@ describe('WorkerPool', () => {
         // Mark the worker as active so that the request will be queued.
         mockWorker.isActive = true;
 
-        const cancellationToken: CancellationToken = {
-            isCancellationRequested: false,
-            onCancellationRequested: jest.fn()
-        };
+        const cancellationToken = new MockCancellationToken();
 
         const mockCallback = jest.fn();
         pool.waitForAvailable('test', mockCallback, cancellationToken);

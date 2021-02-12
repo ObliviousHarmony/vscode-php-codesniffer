@@ -1,6 +1,6 @@
 import * as child_process from 'child_process';
 import { resolve as resolvePath } from 'path';
-import { CancellationToken } from 'vscode';
+import { MockCancellationToken } from '../../__mocks__/vscode';
 import { Request } from '../request';
 import { ReportType } from '../response';
 import { Worker } from '../worker';
@@ -25,11 +25,15 @@ jest.mock('../report-files', () => {
 });
 
 describe('Worker', () => {
+    let phpcsPath: string;
+
     beforeAll(() => {
+        phpcsPath = resolvePath(__dirname, '..', '..', '..', 'vendor', 'bin', 'phpcs');
+
         try {
-            child_process.execFileSync('phpcs', ['--version']);
+            child_process.execFileSync(phpcsPath, ['--version']);
         } catch (e) {
-            throw new Error('This test requires PHPCS to be installed globally.')
+            throw new Error('This test requires `composer install` to be ran.')
         }
     });
 
@@ -41,7 +45,7 @@ describe('Worker', () => {
             documentContent: '',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: null,
@@ -63,7 +67,7 @@ describe('Worker', () => {
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: null,
@@ -87,7 +91,7 @@ describe('Worker', () => {
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: {
@@ -127,7 +131,7 @@ describe('Worker', () => {
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: {},
@@ -150,16 +154,13 @@ describe('Worker', () => {
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: null,
             onComplete: mockOnComplete
         }
-        const cancellationToken: CancellationToken = {
-            isCancellationRequested: false,
-            onCancellationRequested: jest.fn()
-        };
+        const cancellationToken = new MockCancellationToken();
         worker.execute(request, cancellationToken);
 
         // Cancel the worker's execution.
@@ -184,7 +185,7 @@ describe('Worker', () => {
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
-                executable: 'phpcs',
+                executable: phpcsPath,
                 standard: 'psr12'
             },
             data: null,
