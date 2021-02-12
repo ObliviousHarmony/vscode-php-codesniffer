@@ -1,0 +1,88 @@
+{
+  "name": "vscode-php-codesniffer",
+  "displayName": "PHP_CodeSniffer",
+  "description": "Brings PHPCS support to VS Code.",
+  "version": "0.1.0",
+  "license": "GPL-2.0-or-later",
+  "author": "Christopher Allford",
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "engines": {
+    "vscode": "^1.50.0"
+  },
+  "sideEffects": false,
+  "main": "dist/extension.js",
+  "activationEvents": [
+    "onLanguage:php"
+  ],
+  "publisher": "obliviousharmony",
+  "contributes": {
+    "configuration": {
+      "title": "PHP_CodeSniffer",
+      "properties": {
+        "phpCodeSniffer.executable": {
+          "type": "string",
+          "description": "The path to the PHPCS executable we want to use.",
+          "default": "phpcs",
+          "scope": "machine-overridable"
+        },
+        "phpCodeSniffer.standard": {
+          "type": "string",
+          "default": "Disabled",
+          "description": "The coding standard that should be used by PHPCS.",
+          "enum": [
+            "Disabled",
+            "PEAR",
+            "MySource",
+            "Squiz",
+            "PSR1",
+            "PSR12",
+            "Custom"
+          ],
+          "enumDescriptions": [
+            "Disables the PHP_CodeSniffer extension's linting.",
+            "Uses the PEAR coding standard.",
+            "Uses the MySource coding standard.",
+            "Uses the Squiz coding standard.",
+            "Uses the PSR-1 coding standard.",
+            "Uses the PSR-12 coding standard,",
+            "Uses the custom standard referenced in the custom ruleset option."
+          ],
+          "scope": "window"
+        },
+        "phpCodeSniffer.standardCustom": {
+          "type": "string",
+          "description": "The custom coding standard to use if `phpcsCodeSniffer.standard` is set to 'Custom'.",
+          "markdownDescription": "The custom coding standard to use if `#phpCodeSniffer.standard#` is set to 'Custom'.",
+          "default": "",
+          "scope": "window"
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.20",
+    "@types/node": "^12.19.16",
+    "@types/vscode": "~1.50.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.2",
+    "@typescript-eslint/parser": "^4.14.2",
+    "eslint": "^7.19.0",
+    "file-loader": "^6.2.0",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.0",
+    "ts-loader": "^8.0.16",
+    "typescript": "^4.1.3",
+    "webpack": "^5.21.2",
+    "webpack-cli": "^4.5.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run clean && webpack --mode production",
+    "clean": "rimraf dist",
+    "build": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "lint": "eslint ./src --fix",
+    "test": "jest"
+  }
+}

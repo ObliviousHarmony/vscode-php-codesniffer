@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+        "rootDir": "src",
+		"outDir": "dist",
+		"target": "ES2017",
+		"module": "CommonJS",
+		"lib": [ "ES2017" ],
+		"sourceMap": true,
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"strict": true
+	},
+	"exclude": [
+		"**/__tests__/*",
+		"**/__mocks__/*",
+	]
+}

@@ -1,0 +1,2 @@
+export function activate(): void {
+}
