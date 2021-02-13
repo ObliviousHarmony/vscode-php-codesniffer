@@ -2,9 +2,19 @@
   "name": "vscode-php-codesniffer",
   "displayName": "PHP_CodeSniffer",
   "description": "Brings PHPCS support to VS Code.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "GPL-2.0-or-later",
   "author": "Christopher Allford",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ObliviousHarmony/vscode-php-codesniffer.git"
+  },
+  "publisher": "obliviousharmony",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#B0B3D6",
+    "theme": "dark"
+  },
   "categories": [
     "Programming Languages",
     "Linters"
@@ -12,12 +22,10 @@
   "engines": {
     "vscode": "^1.50.0"
   },
-  "sideEffects": false,
   "main": "dist/extension.js",
   "activationEvents": [
     "onLanguage:php"
   ],
-  "publisher": "obliviousharmony",
   "contributes": {
     "configuration": {
       "title": "PHP_CodeSniffer",

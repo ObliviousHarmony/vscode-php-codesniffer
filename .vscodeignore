@@ -1,5 +1,7 @@
-.vscode
-node_modules
+.vscode/
+.github/
+node_modules/
+vendor/
 out/
 src/
 phpcs-reports/
@@ -7,3 +9,7 @@ phpcs-reports/
 jest.config.js
 tsconfig.json
 webpack.config.js
+composer.json
+composer.lock
+.gitignore
+*.vsix
