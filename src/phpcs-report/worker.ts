@@ -1,5 +1,6 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { CancellationToken, Disposable } from 'vscode';
+import { StandardType } from '../configuration';
 import { ReportFiles } from './report-files';
 import { Request } from './request';
 import { ReportType, Response } from './response';
@@ -138,9 +139,13 @@ export class Worker {
             '--report=' + this.getReportFile(request.type),
             // We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.
             '--runtime-set', 'ignore_warnings_on_exit', '1',
-            '--runtime-set', 'ignore_errors_on_exit', '1',
-            '--standard=' + request.options.standard
+            '--runtime-set', 'ignore_errors_on_exit', '1'
         ];
+
+        // Only set the standard when the user has selected one.
+        if (request.options.standard !== StandardType.Default) {
+            processArguments.push('--standard=' + request.options.standard);
+        }
 
         const processOptions: SpawnOptionsWithoutStdio = {};
 
