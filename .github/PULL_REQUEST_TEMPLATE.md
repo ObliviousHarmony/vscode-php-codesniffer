@@ -1,7 +1,7 @@
 ### All Submissions:
 
 * [ ] Have you checked for duplicate [PRs](../../pulls)?
-* [ ] Have you added a changelog entry to the [CHANGELOG.md](CHANGELOG.md) file's [Unreleased] section?
+* [ ] Have you added an entry to the [CHANGELOG.md](CHANGELOG.md) file's [Unreleased] section?
 
 ### Changes proposed in this Pull Request:
 
