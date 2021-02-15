@@ -20,7 +20,7 @@
     "Linters"
   ],
   "engines": {
-    "vscode": "^1.50.0"
+    "vscode": "^1.53.0"
   },
   "main": "dist/extension.js",
   "activationEvents": [
@@ -74,7 +74,7 @@
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/node": "^12.20.0",
-    "@types/vscode": "~1.50.0",
+    "@types/vscode": "^1.53.0",
     "@typescript-eslint/eslint-plugin": "^4.15.0",
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.19.0",
