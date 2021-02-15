@@ -5,6 +5,7 @@ import { TextDocument, Uri, workspace as vsCodeWorkspace } from 'vscode';
  */
 export enum StandardType {
     Disabled = 'Disabled',
+    Default = 'Default',
     PEAR = 'PEAR',
     MySource = 'MySource',
     Squiz = 'Squiz',

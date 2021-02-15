@@ -42,6 +42,7 @@
           "description": "The coding standard that should be used by PHPCS.",
           "enum": [
             "Disabled",
+            "Default",
             "PEAR",
             "MySource",
             "Squiz",
