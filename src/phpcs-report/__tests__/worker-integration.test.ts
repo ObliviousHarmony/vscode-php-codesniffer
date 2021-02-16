@@ -4,7 +4,8 @@ import { Request } from '../request';
 import { ReportType } from '../response';
 import { WorkerPool } from '../worker-pool';
 import { StandardType } from '../../configuration';
-import { CancellationError, CancellationToken } from 'vscode';
+import { CancellationError } from 'vscode';
+import { MockCancellationToken } from '../../__mocks__/vscode';
 
 // We need to mock the report files because Webpack is being used to bundle them.
 jest.mock('../report-files', () => {
@@ -67,14 +68,7 @@ describe('Worker/WorkerPool Integration', () => {
     test('should cancel worker process', async () => {
         const pool = new WorkerPool(1);
 
-        const listeners: ((e?: unknown) => void)[] = [];
-        const cancellationToken: CancellationToken = {
-            isCancellationRequested: false,
-            onCancellationRequested: (listener) => {
-                listeners.push(listener);
-                return { dispose: jest.fn() };
-            }
-        };
+        const cancellationToken = new MockCancellationToken();
 
         const promise = pool.waitForAvailable('test')
             .then((worker) => {
@@ -98,8 +92,7 @@ describe('Worker/WorkerPool Integration', () => {
                 expect(e).toBeInstanceOf(CancellationError);
             });
 
-        cancellationToken.isCancellationRequested = true;
-        listeners.forEach((callback) => callback());
+        cancellationToken.mockCancel();
 
         // Make sure the expectations above are ran.
         expect.assertions(2);

@@ -101,24 +101,15 @@ export class WorkerPool {
         this.inUse.delete(worker);
 
         // Iterate over all of the promises so that we can resolve the worker and reject cancellations.
-        let workerAssigned = false;
         for (const key of this.waitMap.keys()) {
             const data = this.waitMap.getData(key) as PromiseMapData;
-            // Entries without cancellation tokens do nothing without a worker to assign.
-            if (!data && workerAssigned) {
-                continue;
-            }
 
             // Give the worker to the first live request that we find.
             if (!data.cancellationToken || !data.cancellationToken.isCancellationRequested) {
                 this.inUse.add(worker);
                 this.waitMap.resolve(key, worker);
-                workerAssigned = true;
-                continue;
+                break;
             }
-
-            // Trigger cancellation errors on all cancelled requests.
-            this.waitMap.reject(key, new CancellationError());
         }
     }
 
@@ -157,6 +148,7 @@ export class WorkerPool {
             data.cancellationListener.dispose();
         }
 
+        // The pending promise should now be cancelled.
         this.waitMap.reject(key, new CancellationError());
     }
 }

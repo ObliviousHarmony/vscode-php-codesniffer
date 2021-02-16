@@ -27,10 +27,20 @@ const MockTextDocument = jest.fn().mockImplementation(() => {
 });
 
 const MockCancellationToken = jest.fn().mockImplementation(() => {
-    return {
+    const listeners: (() => void)[] = [];
+    const obj = {
         isCancellationRequested: false,
-        onCancellationRequested: jest.fn()
+        onCancellationRequested: (listener: () => void) => {
+            listeners.push(listener);
+            return { dispose: jest.fn() }
+        },
+        mockCancel: () => {
+            obj.isCancellationRequested = true;
+            listeners.forEach((callback) => callback());
+        }
     };
+
+    return obj;
 });
 
 class CancellationError extends Error {

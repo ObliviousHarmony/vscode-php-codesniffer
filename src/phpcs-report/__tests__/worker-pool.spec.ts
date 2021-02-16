@@ -60,12 +60,8 @@ describe('WorkerPool', () => {
 
         const promise = pool.waitForAvailable('test', cancellationToken);
 
-        // Mark a cancellation so that resolution will reject.
-        cancellationToken.isCancellationRequested = true;
-
-        // Change the active status and trigger the resolution.
-        mockWorker.isActive = false;
-        mockWorker.onActiveChanged(mockWorker);
+        // Mock a cancellation so that resolution will reject.
+        cancellationToken.mockCancel();
 
         return expect(promise).rejects.toMatchObject(new CancellationError());
     });
@@ -83,7 +79,7 @@ describe('WorkerPool', () => {
         let promise = pool.waitForAvailable('test', cancellationToken);
 
         // Mark a cancellation so that resolution will reject.
-        cancellationToken.isCancellationRequested = true;
+        cancellationToken.mockCancel();
 
         // Change the active status and trigger the resolution.
         mockWorker.isActive = false;
