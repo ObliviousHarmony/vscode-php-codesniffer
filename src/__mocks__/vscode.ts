@@ -33,6 +33,12 @@ const MockCancellationToken = jest.fn().mockImplementation(() => {
     };
 });
 
+class CancellationError extends Error {
+    public constructor() {
+        super();
+    }
+}
+
 const CancellationTokenSource = jest.fn().mockImplementation(() => {
     return {
         token: new MockCancellationToken(),
@@ -103,6 +109,7 @@ const languages = {
 export {
     MockCancellationToken,
     CancellationTokenSource,
+    CancellationError,
     Uri,
     MockTextDocument,
     Range,

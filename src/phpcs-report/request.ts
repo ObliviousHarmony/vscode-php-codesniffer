@@ -1,4 +1,4 @@
-import { ReportType, Response } from './response';
+import { ReportType } from './response';
 
 /**
  * The request options for PHPCS.
@@ -62,9 +62,4 @@ export interface Request<T extends ReportType> {
      * The data for the request.
      */
     data: RequestContent<T>;
-
-    /**
-     * A callback to execute once the report has been generated.
-     */
-    onComplete: (response: Response<T>) => void;
 }

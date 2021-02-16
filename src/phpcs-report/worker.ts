@@ -1,5 +1,5 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
-import { CancellationToken, Disposable } from 'vscode';
+import { CancellationError, CancellationToken, Disposable } from 'vscode';
 import { StandardType } from '../configuration';
 import { ReportFiles } from './report-files';
 import { Request } from './request';
@@ -54,42 +54,44 @@ export class Worker {
      * @param {Request} request The request we want the worker to execute.
      * @param {CancellationToken} [cancellationToken] An optional token to allow for cancelling requests.
      */
-    public execute<T extends ReportType>(request: Request<T>, cancellationToken?: CancellationToken): void {
+    public execute<T extends ReportType>(request: Request<T>, cancellationToken?: CancellationToken): Promise<Response<T>> {
         if (this.isActive) {
             throw new Error('This worker is already active.');
         }
 
-        // Under certain circumstances we shouldn't bother generating a report because it will be empty.
-        if (request.options.standard === 'Disabled' || request.documentContent.length <= 0) {
-            request.onComplete(Response.fromRaw(request.type, ''));
-            return;
-        }
-
-        // When a consumer passes a cancellation token we will use that to signal
-        // that the running request should be terminated and the worker freed.
-        let cancellationHandler: Disposable | null = null;
-        if (cancellationToken) {
-            // Keep track of the handler so that we can remove it when cancellation is no longer possible.
-            cancellationHandler = cancellationToken.onCancellationRequested(() => this.onCancellation(cancellationToken));
-        }
-        this.cancellationToken = cancellationToken;
-
-        // The requester will receive the report when it is finished.
-        this.activeProcess = this.createProcess(request);
-
-        // The worker is no longer available.
-        this.onActiveChanged?.(this);
-
-        // When the process closes we should clean up the worker and prepare it for a fresh execution.
-        this.activeProcess.on('close', () => {
-            if (cancellationHandler) {
-                cancellationHandler.dispose();
+        return new Promise<Response<T>>((resolve, reject) => {
+            // Under certain circumstances we shouldn't bother generating a report because it will be empty.
+            if (request.options.standard === 'Disabled' || request.documentContent.length <= 0) {
+                resolve(Response.fromRaw(request.type, ''));
+                return;
             }
-            delete this.cancellationToken;
-            delete this.activeProcess;
 
-            // The worker should broadcast its availability.
+            // When a consumer passes a cancellation token we will use that to signal
+            // that the running request should be terminated and the worker freed.
+            let cancellationHandler: Disposable | null = null;
+            if (cancellationToken) {
+                // Keep track of the handler so that we can remove it when cancellation is no longer possible.
+                cancellationHandler = cancellationToken.onCancellationRequested(() => this.onCancellation(cancellationToken));
+            }
+            this.cancellationToken = cancellationToken;
+
+            // The requester will receive the report when it is finished.
+            this.activeProcess = this.createProcess(request, resolve, reject);
+
+            // The worker is no longer available.
             this.onActiveChanged?.(this);
+
+            // When the process closes we should clean up the worker and prepare it for a fresh execution.
+            this.activeProcess.on('close', () => {
+                if (cancellationHandler) {
+                    cancellationHandler.dispose();
+                }
+                delete this.cancellationToken;
+                delete this.activeProcess;
+
+                // The worker should broadcast its availability.
+                this.onActiveChanged?.(this);
+            });
         });
     }
 
@@ -110,7 +112,7 @@ export class Worker {
             return;
         }
 
-        this.activeProcess?.kill('SIGTERM');
+        this.activeProcess?.kill('SIGKILL');
     }
 
     /**
@@ -133,7 +135,11 @@ export class Worker {
      *
      * @param {Request} request The request we're processing.
      */
-    private createProcess<T extends ReportType>(request: Request<T>): ChildProcess {
+    private createProcess<T extends ReportType>(
+        request: Request<T>,
+        resolve: (response: Response<T>) => void,
+        reject: (e?: unknown) => void
+    ): ChildProcess {
         const processArguments = [
             '-q', // Make sure custom configs never break our output.
             '--report=' + this.getReportFile(request.type),
@@ -185,22 +191,18 @@ export class Worker {
         phpcsProcess.on('close', (code) => {
             // When the request is cancelled we don't need to send anyone the report.
             if (this.cancellationToken?.isCancellationRequested) {
+                reject(new CancellationError());
                 return;
             }
 
             if (code !== 0) {
                 console.error(pendingReport, pendingError);
-                request.onComplete(Response.fromRaw(request.type, ''));
+                resolve(Response.fromRaw(request.type, ''));
                 return;
             }
 
-            // Use the completion handler to give the report to the requester.
-            request.onComplete(
-                Response.fromRaw(
-                    request.type,
-                    pendingReport
-                )
-            );
+            // Resolve the promise to complete the report.
+            resolve(Response.fromRaw(request.type, pendingReport));
         });
 
         // Send the document to be handled.

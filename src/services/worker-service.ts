@@ -1,6 +1,6 @@
 import { CancellationToken, CancellationTokenSource, Disposable, TextDocument, Uri } from 'vscode';
 import { Configuration } from '../configuration';
-import { AvailableWorkerCallback, WorkerPool } from '../phpcs-report/worker-pool';
+import { WorkerPool } from '../phpcs-report/worker-pool';
 
 /**
  * A base class for all of the updates that interact with PHPCS.
@@ -68,22 +68,15 @@ export abstract class WorkerService implements Disposable {
     }
 
     /**
-     * Starts a worker for the given document.
+     * Prepares a cancellation token for the service.
      *
-     * @param {TextDocument} document The document to start working on.
-     * @param {string} workerKey The unique key to identify this worker request.
-     * @param {AvailableWorkerCallback} callback A callback to execute once the worker is available.
-     * @param {CancellationToken} [cancellationToken] An optional cancellation token to use.
+     * @param {TextDocument} document The document to prepare a cancellation token for.
+     * @param {CancellationToken} [cancellationToken] The optional parent cancellation token.
      */
-    protected startWorker(
-        document: TextDocument,
-        workerKey: string,
-        callback: AvailableWorkerCallback,
-        cancellationToken?: CancellationToken
-    ): boolean {
+    protected createCancellationToken(document: TextDocument, cancellationToken?: CancellationToken): CancellationToken|null {
         // We want to prevent overlapping execution.
         if (this.cancellationTokenSourceMap.has(document.uri)) {
-            return false;
+            return null;
         }
 
         // Store the token so that we can cancel if necessary.
@@ -96,21 +89,15 @@ export abstract class WorkerService implements Disposable {
             this.cancellationTokenSourceMap.delete(document.uri);
         });
 
-        // Place this document in the queue for a worker to generate the report.
-        this.workerPool.waitForAvailable(
-            workerKey,
-            (worker, cancellationToken) => callback(worker, cancellationToken),
-            cancellationTokenSource.token
-        );
-        return true;
+        return cancellationTokenSource.token;
     }
 
     /**
-     * A callback for use once the worker has completed execution.
+     * Deletes the document's associated cancellation token.
      *
      * @param {TextDocument} document The document we've finished working on.
      */
-    protected onWorkerFinished(document: TextDocument): void {
+    protected deleteCancellationToken(document: TextDocument): void {
         const cancellationTokenSource = this.cancellationTokenSourceMap.get(document.uri);
         if (cancellationTokenSource) {
             cancellationTokenSource.dispose();
