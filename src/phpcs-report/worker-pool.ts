@@ -1,9 +1,14 @@
-import { CancellationError, CancellationToken } from 'vscode';
+import { CancellationError, CancellationToken, Disposable } from 'vscode';
 import { PromiseMap } from '../common/promise-map';
 import { Worker } from './worker';
 
-// The type of data we're assocaiting with the promises in the map.
-type PromiseMapData = CancellationToken|null;
+/**
+ * An interface describing the data we store with promises.
+ */
+interface PromiseMapData {
+    cancellationToken?: CancellationToken;
+    cancellationListener?: Disposable;
+}
 
 /**
  * A pool for managing worker resources.
@@ -13,6 +18,11 @@ export class WorkerPool {
      * The workers available in the pool.
      */
     private readonly workers: Worker[];
+
+    /**
+     * The workers that have been assigned from the pool.
+     */
+    private readonly inUse: Set<Worker>;
 
     /**
      * The queue of requests that are waiting to be executed.
@@ -32,7 +42,22 @@ export class WorkerPool {
             );
         }
 
+        this.inUse = new Set();
         this.waitMap = new PromiseMap();
+    }
+
+    /**
+     * The number of workers free for assignment.
+     */
+    public get freeCount(): number {
+        let count = this.workers.length
+        for (const worker of this.workers) {
+            if (worker.isActive || this.inUse.has(worker)) {
+                count--;
+            }
+        }
+
+        return count;
     }
 
     /**
@@ -46,12 +71,19 @@ export class WorkerPool {
             // If there is already a worker available there is no reason to queue a request.
             const worker = this.getFirstAvailable();
             if (worker) {
+                this.inUse.add(worker);
                 resolve(worker);
                 return;
             }
 
+            // Listen for cancellations to remove pending actios
+            let cancellationListener: Disposable|undefined;
+            if (cancellationToken) {
+                cancellationListener = cancellationToken.onCancellationRequested(() => this.onCancel(key));
+            }
+
             // Queue the wait in the map so that we can resolve it when a worker becomes available.
-            this.waitMap.set(key, resolve, reject, cancellationToken ?? null);
+            this.waitMap.set(key, resolve, reject, { cancellationToken, cancellationListener });
         });
     }
 
@@ -65,6 +97,9 @@ export class WorkerPool {
             return;
         }
 
+        // Since the worker is no longer in use we should indicate as such.
+        this.inUse.delete(worker);
+
         // Iterate over all of the promises so that we can resolve the worker and reject cancellations.
         let workerAssigned = false;
         for (const key of this.waitMap.keys()) {
@@ -75,7 +110,8 @@ export class WorkerPool {
             }
 
             // Give the worker to the first live request that we find.
-            if (!data || !data.isCancellationRequested) {
+            if (!data.cancellationToken || !data.cancellationToken.isCancellationRequested) {
+                this.inUse.add(worker);
                 this.waitMap.resolve(key, worker);
                 workerAssigned = true;
                 continue;
@@ -91,11 +127,36 @@ export class WorkerPool {
      */
     private getFirstAvailable(): Worker|null {
         for (const worker of this.workers) {
-            if (!worker.isActive) {
-                return worker;
+            if (worker.isActive) {
+                continue;
             }
+
+            // It's possible that a worker has been assigned but is not yet active.
+            if (this.inUse.has(worker)) {
+                continue;
+            }
+
+            return worker;
         }
 
         return null;
+    }
+
+    /**
+     * A handler for processing cancellations.
+     *
+     * @param {string} key The key of the request being cancelled.
+     */
+    private onCancel(key: string): void {
+        const data = this.waitMap.getData(key);
+        if (!data) {
+            return;
+        }
+
+        if (data.cancellationListener) {
+            data.cancellationListener.dispose();
+        }
+
+        this.waitMap.reject(key, new CancellationError());
     }
 }

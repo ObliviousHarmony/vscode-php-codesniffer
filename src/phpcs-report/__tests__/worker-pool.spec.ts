@@ -28,7 +28,7 @@ describe('WorkerPool', () => {
     it('should resolve instantly if worker is available', () => {
         const pool = new WorkerPool(1);
 
-        expect(pool.waitForAvailable('test')).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
+        return expect(pool.waitForAvailable('test')).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 
     it('should resolve when worker becomes available', () => {
@@ -39,11 +39,13 @@ describe('WorkerPool', () => {
         // Mark the worker as active so that the request will be queued.
         mockWorker.isActive = true;
 
-        expect(pool.waitForAvailable('test')).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
+        const promise = pool.waitForAvailable('test');
 
         // Change the active status and trigger the resolution.
         mockWorker.isActive = false;
         mockWorker.onActiveChanged(mockWorker);
+
+        return expect(promise).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 
     it('should support cancellation', () => {
@@ -56,7 +58,7 @@ describe('WorkerPool', () => {
 
         const cancellationToken = new MockCancellationToken();
 
-        expect(pool.waitForAvailable('test', cancellationToken)).rejects.toMatchObject(new CancellationError());
+        const promise = pool.waitForAvailable('test', cancellationToken);
 
         // Mark a cancellation so that resolution will reject.
         cancellationToken.isCancellationRequested = true;
@@ -64,5 +66,37 @@ describe('WorkerPool', () => {
         // Change the active status and trigger the resolution.
         mockWorker.isActive = false;
         mockWorker.onActiveChanged(mockWorker);
+
+        return expect(promise).rejects.toMatchObject(new CancellationError());
+    });
+
+    it('should support waiting after cancellation', async () => {
+        const pool = new WorkerPool(1);
+
+        const mockWorker = MockedWorker.mock.results[0].value;
+
+        // Mark the worker as active so that the request will be queued.
+        mockWorker.isActive = true;
+
+        const cancellationToken = new MockCancellationToken();
+
+        let promise = pool.waitForAvailable('test', cancellationToken);
+
+        // Mark a cancellation so that resolution will reject.
+        cancellationToken.isCancellationRequested = true;
+
+        // Change the active status and trigger the resolution.
+        mockWorker.isActive = false;
+        mockWorker.onActiveChanged(mockWorker);
+
+        try {
+            await promise;
+        } catch (e) {
+            expect(e).toBeInstanceOf(CancellationError);
+        }
+
+        promise = pool.waitForAvailable('test', cancellationToken);
+
+        return expect(promise).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 });

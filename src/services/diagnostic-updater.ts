@@ -71,7 +71,7 @@ export class DiagnosticUpdater extends WorkerService {
             return;
         }
 
-        this.workerPool.waitForAvailable('diagnostic:' + document.fileName)
+        this.workerPool.waitForAvailable('diagnostic:' + document.fileName, cancellationToken)
             .then((worker) => {
                 const config = this.configuration.get(document);
 

@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import { resolve as resolvePath } from 'path';
 import { CancellationError } from 'vscode';
+import { StandardType } from '../../configuration';
 import { MockCancellationToken } from '../../__mocks__/vscode';
 import { Request } from '../request';
 import { ReportType } from '../response';
@@ -47,7 +48,7 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: null
         }
@@ -68,7 +69,7 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: null
         }
@@ -91,7 +92,7 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: {
                 code: 'PSR12.Files.OpenTag.NotAlone',
@@ -130,7 +131,7 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: {}
         }
@@ -151,16 +152,18 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: null
         }
         const cancellationToken = new MockCancellationToken();
 
-        expect(worker.execute(request, cancellationToken)).rejects.toStrictEqual(new CancellationError());
+        const promise = worker.execute(request, cancellationToken);
 
         // Cancel the worker's execution.
         cancellationToken.isCancellationRequested = true;
+
+        return expect(promise).rejects.toStrictEqual(new CancellationError());
     });
 
     it('should support active change callback', async () => {
@@ -174,7 +177,7 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: null
         }

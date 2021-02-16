@@ -18,6 +18,11 @@ type ActiveChangedCallback = (worker: Worker) => void;
  */
 export class Worker {
     /**
+     * A callback to execute when a worker's active status changes.
+     */
+    private readonly onActiveChanged?: ActiveChangedCallback;
+
+    /**
      * The current process if the worker is active.
      */
     private activeProcess?: ChildProcess;
@@ -26,11 +31,6 @@ export class Worker {
      * The cancellation token we should use to check if the request may have been cancelled.
      */
     private cancellationToken?: CancellationToken;
-
-    /**
-     * A callback to execute when a worker's active status changes.
-     */
-    private onActiveChanged?: ActiveChangedCallback;
 
     /**
      * Indicates whether or not the worker is currently active.
