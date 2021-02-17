@@ -2,7 +2,7 @@
   "name": "vscode-php-codesniffer",
   "displayName": "PHP_CodeSniffer",
   "description": "Brings PHPCS support to VS Code.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "GPL-2.0-or-later",
   "author": "Christopher Allford",
   "repository": {
@@ -23,7 +23,9 @@
     "vscode": "^1.50.0"
   },
   "main": "dist/extension.js",
-  "extensionKind": [ "workspace" ],
+  "extensionKind": [
+    "workspace"
+  ],
   "activationEvents": [
     "onLanguage:php"
   ],
