@@ -12,13 +12,13 @@ const CodeActionReport = require('../../phpcs-reports/CodeAction.php');
 const FormatReport = require('../../phpcs-reports/Format.php');
 
 export const Dependencies = {
-    VSCodeFile: path.resolve(__dirname, '..', VSCodeFile),
-    VSCodeFixer: path.resolve(__dirname, '..', VSCodeFixer),
-    VSCodeReport: path.resolve(__dirname, '..', VSCodeReport),
+    VSCodeFile: path.resolve(__dirname, '..', 'dist', VSCodeFile),
+    VSCodeFixer: path.resolve(__dirname, '..', 'dist', VSCodeFixer),
+    VSCodeReport: path.resolve(__dirname, '..', 'dist', VSCodeReport),
 }
 
 export const ReportFiles = {
-    Diagnostic: path.resolve(__dirname, '..', DiagnosticReport),
-    CodeAction: path.resolve(__dirname, '..', CodeActionReport),
-    Format: path.resolve(__dirname, '..', FormatReport),
+    Diagnostic: path.resolve(__dirname, '..', 'dist', DiagnosticReport),
+    CodeAction: path.resolve(__dirname, '..', 'dist', CodeActionReport),
+    Format: path.resolve(__dirname, '..', 'dist', FormatReport),
 };
