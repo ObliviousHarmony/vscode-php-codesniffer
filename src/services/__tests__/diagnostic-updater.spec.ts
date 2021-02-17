@@ -59,15 +59,15 @@ describe('DiagnosticUpdater', () => {
         );
     });
 
-    it('should update diagnostics and code actions', (done) => {
+    it('should update diagnostics and code actions', () => {
         const document = new MockTextDocument();
         document.fileName = 'test-document';
 
         const mockWorker = new Worker();
         mocked(mockWorkerPool).waitForAvailable.mockImplementation(
-            (workerKey, callback) => {
+            (workerKey) => {
                 expect(workerKey).toBe('diagnostic:test-document');
-                callback(mockWorker);
+                return Promise.resolve(mockWorker);
             }
         )
         mocked(mockConfiguration).get.mockReturnValue(
@@ -79,6 +79,17 @@ describe('DiagnosticUpdater', () => {
         );
         mocked(mockWorker).execute.mockImplementation(
             (request) => {
+                expect(request).toMatchObject(
+                    {
+                        type: ReportType.Diagnostic,
+                        options: {
+                            workingDirectory: 'test-dir',
+                            executable: 'phpcs-test',
+                            standard: StandardType.PSR12
+                        }
+                    }
+                );
+
                 const response: Response<ReportType.Diagnostic> = {
                     type: ReportType.Diagnostic,
                     report: {
@@ -91,12 +102,7 @@ describe('DiagnosticUpdater', () => {
                     }
                 };
 
-                request.onComplete(response);
-
-                expect(mocked(mockDiagnosticCollection).set).toHaveBeenCalledWith(document.uri, response.report?.diagnostics);
-                expect(mocked(mockCodeActionCollection).set).toHaveBeenCalledWith(document.uri, response.report?.codeActions);
-
-                done();
+                return Promise.resolve(response);
             }
         );
 

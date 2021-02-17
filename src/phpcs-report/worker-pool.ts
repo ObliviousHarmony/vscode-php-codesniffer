@@ -1,22 +1,13 @@
-import { CancellationToken, Disposable } from 'vscode';
+import { CancellationError, CancellationToken, Disposable } from 'vscode';
+import { PromiseMap } from '../common/promise-map';
 import { Worker } from './worker';
 
 /**
- * A callback for once a worker has become available.
- *
- * @callback AvailableWorkerCallback
- * @param {Worker} worker The available worker.
- * @param {CancellationToken} [cancellationToken] The cancellation token that was give to the wait.
+ * An interface describing the data we store with promises.
  */
-export type AvailableWorkerCallback = (worker: Worker, cancellationToken?: CancellationToken) => void;
-
-/**
- * A request for an available worker.
- */
-interface AvailableWorkerRequest {
-    callback: AvailableWorkerCallback;
+interface PromiseMapData {
     cancellationToken?: CancellationToken;
-    cancellationHook?: Disposable;
+    cancellationListener?: Disposable;
 }
 
 /**
@@ -29,9 +20,14 @@ export class WorkerPool {
     private readonly workers: Worker[];
 
     /**
+     * The workers that have been assigned from the pool.
+     */
+    private readonly inUse: Set<Worker>;
+
+    /**
      * The queue of requests that are waiting to be executed.
      */
-    private readonly queuedRequests: Map<string, AvailableWorkerRequest>;
+    private readonly waitMap: PromiseMap<Worker, PromiseMapData>;
 
     /**
      * Constructor.
@@ -46,36 +42,49 @@ export class WorkerPool {
             );
         }
 
-        this.queuedRequests = new Map();
+        this.inUse = new Set();
+        this.waitMap = new PromiseMap();
     }
 
     /**
-     * Queues a callback to receive a worker once one becomes available.
+     * The number of workers free for assignment.
+     */
+    public get freeCount(): number {
+        let count = this.workers.length
+        for (const worker of this.workers) {
+            if (worker.isActive || this.inUse.has(worker)) {
+                count--;
+            }
+        }
+
+        return count;
+    }
+
+    /**
+     * Waits for a worker to become available and resolves it.
      *
      * @param {string} key A key to identify requests uniquely.
-     * @param {AvailableWorkerCallback} callback The function to execute once a worker is available.
      * @param {CancellationToken} [cancellationToken] The optional token for cancelling the search.
      */
-    public waitForAvailable(key: string, callback: AvailableWorkerCallback, cancellationToken?: CancellationToken): void {
-        // A key may only have a single request at a time.
-        if (this.queuedRequests.has(key)) {
-            throw new Error('A request has already been queued for this key.');
-        }
+    public waitForAvailable(key: string, cancellationToken?: CancellationToken): Promise<Worker> {
+        return new Promise<Worker>((resolve, reject) => {
+            // If there is already a worker available there is no reason to queue a request.
+            const worker = this.getFirstAvailable();
+            if (worker) {
+                this.inUse.add(worker);
+                resolve(worker);
+                return;
+            }
 
-        // If there is already a worker available there is no reason to queue a request.
-        const worker = this.getFirstAvailable();
-        if (worker) {
-            callback(worker, cancellationToken);
-            return;
-        }
+            // Listen for cancellations to remove pending actios
+            let cancellationListener: Disposable|undefined;
+            if (cancellationToken) {
+                cancellationListener = cancellationToken.onCancellationRequested(() => this.onCancellation(key));
+            }
 
-        // If the consumer gives a cancellation token we should bind a callback.
-        let cancellationHook: Disposable|undefined = undefined;
-        if (cancellationToken) {
-            cancellationHook = cancellationToken.onCancellationRequested(() => this.onCancellation(key, cancellationToken));
-        }
-
-        this.queuedRequests.set(key, { callback, cancellationToken, cancellationHook });
+            // Queue the wait in the map so that we can resolve it when a worker becomes available.
+            this.waitMap.set(key, resolve, reject, { cancellationToken, cancellationListener });
+        });
     }
 
     /**
@@ -88,17 +97,20 @@ export class WorkerPool {
             return;
         }
 
-        // When a worker becomes inactive we should see if a request is waiting for one.
-        if (!this.queuedRequests.size) {
-            return;
+        // Since the worker is no longer in use we should indicate as such.
+        this.inUse.delete(worker);
+
+        // Iterate over all of the promises so that we can resolve the worker and reject cancellations.
+        for (const key of this.waitMap.keys()) {
+            const data = this.waitMap.getData(key) as PromiseMapData;
+
+            // Give the worker to the first live request that we find.
+            if (!data.cancellationToken || !data.cancellationToken.isCancellationRequested) {
+                this.inUse.add(worker);
+                this.waitMap.resolve(key, worker);
+                break;
+            }
         }
-        const key = this.queuedRequests.keys().next().value;
-
-        const request = this.queuedRequests.get(key);
-        request?.callback(worker, request.cancellationToken);
-        request?.cancellationHook?.dispose();
-
-        this.queuedRequests.delete(key);
     }
 
     /**
@@ -106,32 +118,37 @@ export class WorkerPool {
      */
     private getFirstAvailable(): Worker|null {
         for (const worker of this.workers) {
-            if (!worker.isActive) {
-                return worker;
+            if (worker.isActive) {
+                continue;
             }
+
+            // It's possible that a worker has been assigned but is not yet active.
+            if (this.inUse.has(worker)) {
+                continue;
+            }
+
+            return worker;
         }
 
         return null;
     }
 
     /**
-     * A callback triggered when a request is cancelled.
+     * A handler for processing cancellations.
      *
-     * @param {string} key The key for the request we're cancelling.
-     * @param {CancellationToken} cancellationToken The cancellation token that was used for this.
+     * @param {string} key The key of the request being cancelled.
      */
-    private onCancellation(key: string, cancellationToken: CancellationToken): void {
-        const request = this.queuedRequests.get(key);
-        if (!request) {
+    private onCancellation(key: string): void {
+        const data = this.waitMap.getData(key);
+        if (!data) {
             return;
         }
 
-        // Make sure we don't allow cancellations from a different request.
-        if (request.cancellationToken !== cancellationToken) {
-            return;
+        if (data.cancellationListener) {
+            data.cancellationListener.dispose();
         }
 
-        // Remove the request since we're done.
-        this.queuedRequests.delete(key);
+        // The pending promise should now be cancelled.
+        this.waitMap.reject(key, new CancellationError());
     }
 }

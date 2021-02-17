@@ -2,6 +2,7 @@ import { mocked } from 'ts-jest/utils';
 import { Worker } from '../worker';
 import { WorkerPool } from '../worker-pool';
 import { MockCancellationToken } from '../../__mocks__/vscode';
+import { CancellationError } from 'vscode';
 
 jest.mock('../worker', () => {
     return {
@@ -24,18 +25,13 @@ describe('WorkerPool', () => {
         MockedWorker.mockClear();
     });
 
-    it('should execute callback instantly if worker is available', () => {
+    it('should resolve instantly if worker is available', () => {
         const pool = new WorkerPool(1);
 
-        const mockCallback = jest.fn();
-        pool.waitForAvailable('test', mockCallback);
-
-        expect(mockCallback).toHaveBeenCalled();
-        // Make sure it was called with the expected worker.
-        expect(mockCallback.mock.calls[0][0]).toStrictEqual(MockedWorker.mock.results[0].value);
+        return expect(pool.waitForAvailable('test')).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 
-    it('should execute callback when worker becomes available', () => {
+    it('should resolve when worker becomes available', () => {
         const pool = new WorkerPool(1);
 
         const mockWorker = MockedWorker.mock.results[0].value;
@@ -43,16 +39,13 @@ describe('WorkerPool', () => {
         // Mark the worker as active so that the request will be queued.
         mockWorker.isActive = true;
 
-        const mockCallback = jest.fn();
-        pool.waitForAvailable('test', mockCallback);
+        const promise = pool.waitForAvailable('test');
 
-        expect(mockCallback).not.toHaveBeenCalled();
-
-        // Change the active status and trigger the callback as if a worker finished a job.
+        // Change the active status and trigger the resolution.
         mockWorker.isActive = false;
         mockWorker.onActiveChanged(mockWorker);
 
-        expect(mockCallback).toHaveBeenCalledWith(mockWorker, undefined);
+        return expect(promise).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 
     it('should support cancellation', () => {
@@ -65,9 +58,41 @@ describe('WorkerPool', () => {
 
         const cancellationToken = new MockCancellationToken();
 
-        const mockCallback = jest.fn();
-        pool.waitForAvailable('test', mockCallback, cancellationToken);
+        const promise = pool.waitForAvailable('test', cancellationToken);
 
-        expect(cancellationToken.onCancellationRequested).toHaveBeenCalled();
+        // Mock a cancellation so that resolution will reject.
+        cancellationToken.mockCancel();
+
+        return expect(promise).rejects.toMatchObject(new CancellationError());
+    });
+
+    it('should support waiting after cancellation', async () => {
+        const pool = new WorkerPool(1);
+
+        const mockWorker = MockedWorker.mock.results[0].value;
+
+        // Mark the worker as active so that the request will be queued.
+        mockWorker.isActive = true;
+
+        const cancellationToken = new MockCancellationToken();
+
+        let promise = pool.waitForAvailable('test', cancellationToken);
+
+        // Mark a cancellation so that resolution will reject.
+        cancellationToken.mockCancel();
+
+        // Change the active status and trigger the resolution.
+        mockWorker.isActive = false;
+        mockWorker.onActiveChanged(mockWorker);
+
+        try {
+            await promise;
+        } catch (e) {
+            expect(e).toBeInstanceOf(CancellationError);
+        }
+
+        promise = pool.waitForAvailable('test', cancellationToken);
+
+        return expect(promise).resolves.toStrictEqual(MockedWorker.mock.results[0].value);
     });
 });

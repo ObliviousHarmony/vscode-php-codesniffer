@@ -87,24 +87,11 @@ export class CodeActionProvider implements BaseProvider<CodeAction> {
         codeAction: CodeAction,
         cancellationToken: CancellationToken
     ): ProviderResult<CodeAction> {
-        return new Promise<CodeAction>(
-            (resolve) => {
-                // Resolve early if the request is cancelled.
-                cancellationToken.onCancellationRequested(() => resolve(codeAction));
+        if (!codeAction.document) {
+            return codeAction;
+        }
 
-                this.codeActionEditResolver.resolve(
-                    codeAction,
-                    (edit) => {
-                        if (edit) {
-                            codeAction.edit = edit;
-                        }
-
-                        resolve(codeAction);
-                    },
-                    cancellationToken
-                );
-            }
-        );
+        return this.codeActionEditResolver.resolve(codeAction, cancellationToken);
     }
 
     /**

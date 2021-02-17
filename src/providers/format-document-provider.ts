@@ -65,28 +65,12 @@ export class FormatDocumentProvider implements DocumentFormattingEditProvider, D
         _options: FormattingOptions,
         cancellationToken: CancellationToken
     ): ProviderResult<TextEdit[]> {
-        return new Promise<TextEdit[]|undefined>(
-            (resolve) => {
-                // Resolve early if the request is cancelled.
-                cancellationToken.onCancellationRequested(() => resolve(undefined));
+        return this.documentFormatter.format(document, range, cancellationToken)
+            .then((edit) => {
+                // Clear any of the diagnostics for the document since we've formatted it and will re-scan.
+                this.diagnosticUpdater.clearDocument(document);
 
-                this.documentFormatter.format(
-                    document,
-                    range,
-                    (edit) => {
-                        // Clear any of the diagnostics for the document since we've formatted it and will re-scan.
-                        this.diagnosticUpdater.clearDocument(document);
-
-                        if (edit) {
-                            resolve([ edit ]);
-                            return;
-                        }
-
-                        resolve(undefined);
-                    },
-                    cancellationToken
-                )
-            }
-        );
+                return edit;
+            });
     }
 }

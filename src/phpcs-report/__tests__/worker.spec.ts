@@ -1,5 +1,7 @@
 import * as child_process from 'child_process';
 import { resolve as resolvePath } from 'path';
+import { CancellationError } from 'vscode';
+import { StandardType } from '../../configuration';
 import { MockCancellationToken } from '../../__mocks__/vscode';
 import { Request } from '../request';
 import { ReportType } from '../response';
@@ -37,7 +39,7 @@ describe('Worker', () => {
         }
     });
 
-    it('should complete empty reports', (done) => {
+    it('should complete empty reports', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Diagnostic> = {
@@ -46,20 +48,19 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
-            data: null,
-            onComplete: (response) => {
-                expect(response).toHaveProperty('type', ReportType.Diagnostic);
-                expect(response).toHaveProperty('report');
-                expect(response.report).toBeUndefined();
-                done();
-            }
+            data: null
         }
-        worker.execute(request);
+
+        const response = await worker.execute(request);
+
+        expect(response).toHaveProperty('type', ReportType.Diagnostic);
+        expect(response).toHaveProperty('report');
+        expect(response.report).toBeUndefined();
     });
 
-    it('should execute diagnostic requests', (done) => {
+    it('should execute diagnostic requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Diagnostic> = {
@@ -68,22 +69,21 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
-            data: null,
-            onComplete: (response) => {
-                expect(response).toHaveProperty('type', ReportType.Diagnostic);
-                expect(response).toHaveProperty('report');
-                expect(response.report).not.toBeUndefined();
-                expect(response.report).toHaveProperty('diagnostics');
-                expect(response.report).toHaveProperty('codeActions');
-                done();
-            }
+            data: null
         }
-        worker.execute(request);
+
+        const response = await worker.execute(request);
+
+        expect(response).toHaveProperty('type', ReportType.Diagnostic);
+        expect(response).toHaveProperty('report');
+        expect(response.report).not.toBeUndefined();
+        expect(response.report).toHaveProperty('diagnostics');
+        expect(response.report).toHaveProperty('codeActions');
     });
 
-    it('should execute code action requests', (done) => {
+    it('should execute code action requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.CodeAction> = {
@@ -92,38 +92,37 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
             data: {
                 code: 'PSR12.Files.OpenTag.NotAlone',
                 line: 0,
                 character: 0
-            },
-            onComplete: (response) => {
-                expect(response).toHaveProperty('type', ReportType.CodeAction);
-                expect(response).toHaveProperty('report');
-                expect(response.report).toHaveProperty('edits');
-                expect(response.report?.edits).toMatchObject([
-                    {
-                        range: {
-                            start: {
-                                line: 0,
-                                character: 0
-                            },
-                            end: {
-                                line: 0,
-                                character: 6
-                            }
-                        }
-                    }
-                ]);
-                done();
             }
         }
-        worker.execute(request);
+
+        const response = await worker.execute(request);
+
+        expect(response).toHaveProperty('type', ReportType.CodeAction);
+        expect(response).toHaveProperty('report');
+        expect(response.report).toHaveProperty('edits');
+        expect(response.report?.edits).toMatchObject([
+            {
+                range: {
+                    start: {
+                        line: 0,
+                        character: 0
+                    },
+                    end: {
+                        line: 0,
+                        character: 6
+                    }
+                }
+            }
+        ]);
     });
 
-    it('should execute format requests', (done) => {
+    it('should execute format requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Format> = {
@@ -132,50 +131,42 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
-            data: {},
-            onComplete: (response) => {
-                expect(response).toHaveProperty('type', ReportType.Format);
-                expect(response).toHaveProperty('report');
-                expect(response.report).toHaveProperty('content');
-                done();
-            }
+            data: {}
         }
-        worker.execute(request);
+
+        const response = await worker.execute(request);
+
+        expect(response).toHaveProperty('type', ReportType.Format);
+        expect(response).toHaveProperty('report');
+        expect(response.report).toHaveProperty('content');
     });
 
-    it('should support execute cancellation', (done) => {
+    it('should support execute cancellation', async () => {
         const worker = new Worker();
 
-        const mockOnComplete = jest.fn();
         const request: Request<ReportType.Diagnostic> = {
             type: ReportType.Diagnostic,
             documentContent: '<?php class Test {}',
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
-            data: null,
-            onComplete: mockOnComplete
+            data: null
         }
         const cancellationToken = new MockCancellationToken();
-        worker.execute(request, cancellationToken);
+
+        const promise = worker.execute(request, cancellationToken);
 
         // Cancel the worker's execution.
-        cancellationToken.isCancellationRequested = true;
+        cancellationToken.mockCancel();
 
-        // Let the event loop run so that we can process the cancellation.
-        setTimeout(() => {
-            expect(mockOnComplete).not.toHaveBeenCalled();
-            expect(cancellationToken.onCancellationRequested).toHaveBeenCalled();
-            expect(worker.isActive).toBe(false);
-            done();
-        }, 150);
+        return expect(promise).rejects.toStrictEqual(new CancellationError());
     });
 
-    it('should support active change callback', (done) => {
+    it('should support active change callback', async () => {
         const onActiveChanged = jest.fn();
 
         const worker = new Worker(onActiveChanged);
@@ -186,19 +177,14 @@ describe('Worker', () => {
             options: {
                 workingDirectory: __dirname,
                 executable: phpcsPath,
-                standard: 'psr12'
+                standard: StandardType.PSR12
             },
-            data: null,
-            onComplete: () => {
-                // Wait for it to call the other handlers.
-                setTimeout(() => {
-                    expect(onActiveChanged).toHaveBeenCalledTimes(2);
-                    expect(onActiveChanged).toHaveBeenLastCalledWith(worker);
-                    done();
-                }, 10);
-            }
+            data: null
         }
-        worker.execute(request);
-        expect(onActiveChanged).toHaveBeenCalledWith(worker);
+
+        await worker.execute(request);
+
+        expect(onActiveChanged).toHaveBeenCalledTimes(2);
+        expect(onActiveChanged).toHaveBeenLastCalledWith(worker);
     });
 });
