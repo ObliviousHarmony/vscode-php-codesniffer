@@ -79,7 +79,7 @@ export class WorkerPool {
             // Listen for cancellations to remove pending actios
             let cancellationListener: Disposable|undefined;
             if (cancellationToken) {
-                cancellationListener = cancellationToken.onCancellationRequested(() => this.onCancel(key));
+                cancellationListener = cancellationToken.onCancellationRequested(() => this.onCancellation(key));
             }
 
             // Queue the wait in the map so that we can resolve it when a worker becomes available.
@@ -138,7 +138,7 @@ export class WorkerPool {
      *
      * @param {string} key The key of the request being cancelled.
      */
-    private onCancel(key: string): void {
+    private onCancellation(key: string): void {
         const data = this.waitMap.getData(key);
         if (!data) {
             return;
