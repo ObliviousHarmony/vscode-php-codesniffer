@@ -23,6 +23,7 @@
     "vscode": "^1.50.0"
   },
   "main": "dist/extension.js",
+  "extensionKind": [ "workspace" ],
   "activationEvents": [
     "onLanguage:php"
   ],
