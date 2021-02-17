@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2021-02-16
+### Fixed
+- Custom PHPCS report paths in package.
+
 ## [0.3.0] - 2021-02-16
 ### Added
 - "Default" standard option that allows PHPCS to decide which standard to use.
