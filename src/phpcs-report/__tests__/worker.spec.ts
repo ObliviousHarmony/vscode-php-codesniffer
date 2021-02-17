@@ -39,7 +39,7 @@ describe('Worker', () => {
         }
     });
 
-    it.skip('should complete empty reports', async () => {
+    it('should complete empty reports', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Diagnostic> = {
@@ -60,7 +60,7 @@ describe('Worker', () => {
         expect(response.report).toBeUndefined();
     });
 
-    it.skip('should execute diagnostic requests', async () => {
+    it('should execute diagnostic requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Diagnostic> = {
@@ -83,7 +83,7 @@ describe('Worker', () => {
         expect(response.report).toHaveProperty('codeActions');
     });
 
-    it.skip('should execute code action requests', async () => {
+    it('should execute code action requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.CodeAction> = {
@@ -122,7 +122,7 @@ describe('Worker', () => {
         ]);
     });
 
-    it.skip('should execute format requests', async () => {
+    it('should execute format requests', async () => {
         const worker = new Worker();
 
         const request: Request<ReportType.Format> = {
@@ -166,7 +166,7 @@ describe('Worker', () => {
         return expect(promise).rejects.toStrictEqual(new CancellationError());
     });
 
-    it.skip('should support active change callback', async () => {
+    it('should support active change callback', async () => {
         const onActiveChanged = jest.fn();
 
         const worker = new Worker(onActiveChanged);
