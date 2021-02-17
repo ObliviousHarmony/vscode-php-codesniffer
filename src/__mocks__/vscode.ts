@@ -1,8 +1,15 @@
-const Uri = jest.fn().mockImplementation(() => {
+const Uri: any = jest.fn().mockImplementation(() => {
     return {
-        fsPath: 'test/path.php'
+        scheme: 'file',
+        authority: '',
+        path: 'test/file/path.php',
+        query: '',
+        fragment: '',
+        fsPath: 'test/file/path.php',
+        toString: jest.fn()
     };
 });
+Uri.joinPath = jest.fn();
 
 const MockTextDocument = jest.fn().mockImplementation(() => {
     return {
@@ -107,7 +114,10 @@ const workspace = {
     onDidChangeConfiguration: jest.fn(),
     onDidChangeWorkspaceFolders: jest.fn(),
     getWorkspaceFolder: jest.fn(),
-    getConfiguration: jest.fn()
+    getConfiguration: jest.fn(),
+    fs: {
+        stat: jest.fn()
+    }
 };
 
 const languages = {

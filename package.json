@@ -33,9 +33,15 @@
     "configuration": {
       "title": "PHP_CodeSniffer",
       "properties": {
+        "phpCodeSniffer.autoExecutable": {
+          "type": "boolean",
+          "markdownDescription": "Attempts to find `vendor/bin/phpcs` in the file's directory and parent directories before falling back to `#phpCodeSniffer.executable#`.",
+          "default": false,
+          "scope": "resource"
+        },
         "phpCodeSniffer.executable": {
           "type": "string",
-          "description": "The path to the PHPCS executable we want to use.",
+          "markdownDescription": "The path to the PHPCS executable we want to use when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "default": "phpcs",
           "scope": "machine-overridable"
         },
@@ -55,6 +61,7 @@
           ],
           "enumDescriptions": [
             "Disables the PHP_CodeSniffer extension's linting.",
+            "Allows PHPCS to decide the coding standard.",
             "Uses the PEAR coding standard.",
             "Uses the MySource coding standard.",
             "Uses the Squiz coding standard.",
@@ -66,7 +73,6 @@
         },
         "phpCodeSniffer.standardCustom": {
           "type": "string",
-          "description": "The custom coding standard to use if `phpcsCodeSniffer.standard` is set to 'Custom'.",
           "markdownDescription": "The custom coding standard to use if `#phpCodeSniffer.standard#` is set to 'Custom'.",
           "default": "",
           "scope": "window"
