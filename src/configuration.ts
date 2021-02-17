@@ -63,10 +63,10 @@ export class Configuration {
      *
      * @param {TextDocument} document The document we want to fetch the config for.
      */
-    public get(document: TextDocument): DocumentConfiguration {
+    public get(document: TextDocument): Promise<DocumentConfiguration> {
         let config = this.cache.get(document.uri);
         if (config) {
-            return config;
+            return Promise.resolve(config);
         }
 
         // Read the configuration and cache it to avoid doing so again.
@@ -78,7 +78,7 @@ export class Configuration {
         };
         this.cache.set(document.uri, config);
 
-        return config;
+        return Promise.resolve(config);
     }
 
     /**

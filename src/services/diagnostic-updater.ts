@@ -72,8 +72,8 @@ export class DiagnosticUpdater extends WorkerService {
         }
 
         this.workerPool.waitForAvailable('diagnostic:' + document.fileName, cancellationToken)
-            .then((worker) => {
-                const config = this.configuration.get(document);
+            .then(async (worker) => {
+                const config = await this.configuration.get(document);
 
                 // Use the worker to make a request for a diagnostic report.
                 const request: Request<ReportType.Diagnostic> = {

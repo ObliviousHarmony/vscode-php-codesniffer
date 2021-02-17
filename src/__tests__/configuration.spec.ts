@@ -12,7 +12,7 @@ describe('Configuration', () => {
         configuration = new Configuration(workspace);
     });
 
-    it('should read and cache configuration for document', () => {
+    it('should read and cache configuration for document', async () => {
         const mockConfiguration = { get: jest.fn() };
         mocked(workspace).getConfiguration.mockReturnValue(mockConfiguration as never);
 
@@ -25,7 +25,7 @@ describe('Configuration', () => {
             fail('An unexpected configuration key of ' + key + ' was received.')
         });
 
-        const result = configuration.get(mockDocument);
+        const result = await configuration.get(mockDocument);
 
         expect(workspace.getConfiguration).toHaveBeenCalledWith('phpCodeSniffer', mockDocument);
         expect(result).toMatchObject({
@@ -35,7 +35,7 @@ describe('Configuration', () => {
         });
 
         // Make sure that a subsequent fetch loads a cached instance.
-        const cached = configuration.get(mockDocument);
+        const cached = await configuration.get(mockDocument);
 
         expect(workspace.getConfiguration).toHaveBeenCalledTimes(1);
         expect(cached).toMatchObject(result);

@@ -40,8 +40,8 @@ export class CodeActionEditResolver extends WorkerService {
         ].join(':');
 
         return this.workerPool.waitForAvailable(workerKey, cancellationToken)
-            .then((worker) => {
-                const config = this.configuration.get(document);
+            .then(async (worker) => {
+                const config = await this.configuration.get(document);
 
                 // Use the worker to make a request for a code action report.
                 const request: Request<ReportType.CodeAction> = {

@@ -31,8 +31,8 @@ export class DocumentFormatter extends WorkerService {
         ].join(':');
 
         return this.workerPool.waitForAvailable(workerKey, cancellationToken)
-            .then((worker) => {
-                const config = this.configuration.get(document);
+            .then(async (worker) => {
+                const config = await this.configuration.get(document);
 
                 const data: FormatRequest = {};
 
