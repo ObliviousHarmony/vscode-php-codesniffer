@@ -128,7 +128,7 @@ export class Configuration {
         if (findExecutable) {
             // Start in the document's directory.
             let dir: Uri = Uri.joinPath(document.uri, '..');
-            while (dir) {
+            while (dir.path !== '.') {
                 const phpcsPath = Uri.joinPath(dir, 'vendor/bin/phpcs');
                 try {
                     await this.workspace.fs.stat(phpcsPath);
