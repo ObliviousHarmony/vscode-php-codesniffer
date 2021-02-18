@@ -103,8 +103,15 @@ export class Configuration {
 
     /**
      * Clears the cached configuration.
+     *
+     * @param {TextDocument} [document] The document to limit clearing to.
      */
-    public clearCache(): void {
+    public clearCache(document?: TextDocument): void {
+        if (document) {
+            this.cache.delete(document.uri);
+            return;
+        }
+
         this.cache.clear();
     }
 
