@@ -114,6 +114,14 @@ export class WorkspaceListener implements Disposable {
         if (window.activeTextEditor) {
             this.onOpen(window.activeTextEditor.document);
         }
+
+        // We're going to be watching for filesystem events on PHPCS executables.
+        // This will allow us to take action when an executable we're using is no
+        // longer available as well as when a new executable becomes available.
+        const watcher = workspace.createFileSystemWatcher('**/vendor/bin/phpcs', false, true, false);
+        this.subscriptions.push(watcher);
+        watcher.onDidCreate((e) => this.onExecutableChange(workspace, e));
+        watcher.onDidDelete((e) => this.onExecutableChange(workspace, e));
     }
 
     /**
@@ -144,9 +152,13 @@ export class WorkspaceListener implements Disposable {
         }
         this.documents.delete(document.uri);
 
+        // Let all of our services know the document is gone.
         this.diagnosticUpdater.onDocumentClosed(document);
         this.codeActionEditResolver.onDocumentClosed(document);
         this.documentFormatter.onDocumentClosed(document);
+
+        // Don't unnecessarily hold onto the cache.
+        this.configuration.clearCache(document);
     }
 
     /**
@@ -176,6 +188,40 @@ export class WorkspaceListener implements Disposable {
             this.diagnosticUpdater.update(document);
         }, 100);
         this.updateDebounceMap.set(document.uri, debounce);
+    }
+
+    /**
+     * A callback for `vendor/bin/phpcs` executables being created or deleted.
+     *
+     * @param {workspace} workspace The workspace the executable is part of.
+     * @param {Uri} executable The Uri for the executable that has changed.
+     */
+    private onExecutableChange(workspace: typeof vsCodeWorkspace, executable: Uri): void {
+        const workspaceFolder = workspace.getWorkspaceFolder(executable);
+        if (!workspaceFolder) {
+            throw new Error('No workspace found for executable.');
+        }
+
+        const folderString = workspaceFolder.uri.toString();
+
+        // Since the cache may be invalid now we should update all of the documents
+        // that might be affected by this change.
+        for (const kvp of this.documents) {
+            // Only affect documents in the workspace folder.
+            const documentString = kvp[0].toString();
+            if (!documentString.startsWith(folderString)) {
+                continue;
+            }
+
+            // Clear the cache since its executable may have been affected.
+            this.configuration.clearCache(kvp[1]);
+
+            // Don't allow for overlapping requests.
+            this.diagnosticUpdater.cancel(kvp[1]);
+
+            // Update the diagnostics for the document.
+            this.diagnosticUpdater.update(kvp[1]);
+        }
     }
 
     /**

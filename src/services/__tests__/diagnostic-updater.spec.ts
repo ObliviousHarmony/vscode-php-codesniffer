@@ -70,7 +70,7 @@ describe('DiagnosticUpdater', () => {
                 return Promise.resolve(mockWorker);
             }
         )
-        mocked(mockConfiguration).get.mockReturnValue(
+        mocked(mockConfiguration).get.mockResolvedValue(
             {
                 workingDirectory: 'test-dir',
                 executable: 'phpcs-test',
