@@ -1,4 +1,4 @@
-import { TextDocument, Uri, workspace as vsCodeWorkspace } from 'vscode';
+import { FileSystemError, TextDocument, Uri, workspace as vsCodeWorkspace } from 'vscode';
 
 /**
  * An enum describing the values in the `phpcsCodeSniffer.standard` configuration.
@@ -147,6 +147,11 @@ export class Configuration {
                     workingDirectory = dir.fsPath;
                     break;
                 } catch (e) {
+                    // Only errors indicating from the filesystem are relevant.
+                    if (!(e instanceof FileSystemError)) {
+                        throw e;
+                    }
+
                     // Stop once we reach the workspace folder.
                     if (dir.toString() === workspaceFolder.toString()) {
                         break;

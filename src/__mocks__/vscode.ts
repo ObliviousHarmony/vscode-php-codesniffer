@@ -110,6 +110,16 @@ const TextEdit = jest.fn().mockImplementation((range, newContent) => {
     return { range, newContent };
 });
 
+class FileSystemError extends Error {
+    public readonly code: string;
+
+    public constructor(messageOrUri: string | typeof Uri) {
+        super(messageOrUri.toString());
+
+        this.code = '';
+    }
+}
+
 const workspace = {
     onDidChangeConfiguration: jest.fn(),
     onDidChangeWorkspaceFolders: jest.fn(),
@@ -139,6 +149,7 @@ export {
     CodeAction,
     CodeActionKind,
     TextEdit,
+    FileSystemError,
     workspace,
     languages,
 };

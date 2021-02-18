@@ -1,4 +1,4 @@
-import { TextDocument, workspace, Uri as vsCodeUri } from 'vscode';
+import { TextDocument, workspace, Uri as vsCodeUri, FileSystemError } from 'vscode';
 import { MockTextDocument, Uri } from '../__mocks__/vscode';
 import { mocked } from 'ts-jest/utils';
 import { Configuration, StandardType } from '../configuration';
@@ -86,7 +86,7 @@ describe('Configuration', () => {
         // We will traverse from the file directory up.
         mocked(workspace.fs.stat).mockImplementation((uri) => {
             switch (uri.path) {
-                case 'test/file/vendor/bin/phpcs': return Promise.reject(new Error('No file found'));
+                case 'test/file/vendor/bin/phpcs': return Promise.reject(new FileSystemError(uri));
                 case 'test/vendor/bin/phpcs': {
                     const ret = new Uri();
                     ret.path = 'test';
