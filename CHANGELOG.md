@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Automatically attempt to find a `vendor/bin/phpcs` file when `phpCodeSniffer.autoExecutable` is enabled.
 
+### Fixed
+- Range formatting.
+
 ## [0.3.1] - 2021-02-16
 ### Fixed
 - Custom PHPCS report paths in package.

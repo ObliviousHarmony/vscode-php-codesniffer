@@ -81,12 +81,20 @@ class VSCodeFile extends File
      * @param int $line The line to check.
      * @param int $column The column to check.
      * @param bool $useRangeFormat Indicates we should find the VS Code range format.
-     * @return int
+     * @return int|null
      */
     public function getStackPtrForPosition($line, $column, $useRangeFormat = false)
     {
         if ($useRangeFormat) {
+            if (!isset($this->tokenPositionMap[$line . ':' . $column])) {
+                return null;
+            }
+
             return $this->tokenPositionMap[$line . ':' . $column];
+        }
+
+        if (!isset($this->tokenPositionMap[$line][$column])) {
+            return null;
         }
 
         return $this->tokenPositionMap[$line][$column];
