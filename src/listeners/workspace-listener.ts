@@ -118,7 +118,7 @@ export class WorkspaceListener implements Disposable {
         // We're going to be watching for filesystem events on PHPCS executables.
         // This will allow us to take action when an executable we're using is no
         // longer available as well as when a new executable becomes available.
-        const watcher = workspace.createFileSystemWatcher('**/vendor/bin/phpcs', false, true, false);
+        const watcher = workspace.createFileSystemWatcher('**/bin/phpcs', false, true, false);
         this.subscriptions.push(watcher);
         watcher.onDidCreate((e) => this.onExecutableChange(workspace, e));
         watcher.onDidDelete((e) => this.onExecutableChange(workspace, e));
@@ -191,7 +191,7 @@ export class WorkspaceListener implements Disposable {
     }
 
     /**
-     * A callback for `vendor/bin/phpcs` executables being created or deleted.
+     * A callback for `bin/phpcs` executables being created or deleted.
      *
      * @param {workspace} workspace The workspace the executable is part of.
      * @param {Uri} executable The Uri for the executable that has changed.

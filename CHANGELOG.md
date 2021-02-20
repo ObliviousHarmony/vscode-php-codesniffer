@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Automatically attempt to find a `vendor/bin/phpcs` file when `phpCodeSniffer.autoExecutable` is enabled.
+- Automatically attempt to find a `bin/phpcs` file in a vendor directory when `phpCodeSniffer.autoExecutable` is enabled.
 
 ### Fixed
 - Range formatting.

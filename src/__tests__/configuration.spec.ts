@@ -1,5 +1,6 @@
 import { TextDocument, workspace, Uri as vsCodeUri, FileSystemError } from 'vscode';
 import { MockTextDocument, Uri } from '../__mocks__/vscode';
+import { TextEncoder } from 'util';
 import { mocked } from 'ts-jest/utils';
 import { Configuration, StandardType } from '../configuration';
 
@@ -84,10 +85,26 @@ describe('Configuration', () => {
         mocked(workspace).getWorkspaceFolder.mockReturnValue({ uri: workspaceUri } as never);
 
         // We will traverse from the file directory up.
+        mocked(workspace.fs.readFile).mockImplementation((uri) => {
+            switch (uri.path) {
+                case 'test/file/composer.json': return Promise.reject(new FileSystemError(uri));
+                case 'test/composer.json': {
+                    const json = JSON.stringify({
+                        config: {
+                            'vendor-dir': 'newvendor',
+                        },
+                    });
+                    const encoder = new TextEncoder();
+                    return Promise.resolve(encoder.encode(json));
+                }
+            }
+
+            throw new Error('Invalid path: ' + uri.path);
+        });
+
         mocked(workspace.fs.stat).mockImplementation((uri) => {
             switch (uri.path) {
-                case 'test/file/vendor/bin/phpcs': return Promise.reject(new FileSystemError(uri));
-                case 'test/vendor/bin/phpcs': {
+                case 'test/newvendor/bin/phpcs': {
                     const ret = new Uri();
                     ret.path = 'test';
                     ret.fsPath = 'test';
@@ -112,7 +129,7 @@ describe('Configuration', () => {
 
         expect(workspace.getConfiguration).toHaveBeenCalledWith('phpCodeSniffer', mockDocument);
         expect(result).toMatchObject({
-            executable: 'test/vendor/bin/phpcs',
+            executable: 'test/newvendor/bin/phpcs',
             standard: StandardType.Disabled,
             workingDirectory: 'test'
         });

@@ -35,7 +35,7 @@
       "properties": {
         "phpCodeSniffer.autoExecutable": {
           "type": "boolean",
-          "markdownDescription": "Attempts to find `vendor/bin/phpcs` in the file's directory and parent directories before falling back to `#phpCodeSniffer.executable#`.",
+          "markdownDescription": "Attempts to find `bin/phpcs` in the file directory and parent directories' vendor directory before falling back to `#phpCodeSniffer.executable#`.",
           "default": false,
           "scope": "resource"
         },
