@@ -1,3 +1,4 @@
+import { TextDecoder } from 'util';
 import { FileSystemError, TextDocument, Uri, workspace as vsCodeWorkspace } from 'vscode';
 
 /**
@@ -66,6 +67,11 @@ export class Configuration {
     private readonly cache: Map<Uri, DocumentConfiguration>;
 
     /**
+     * The decoder for parsing file content into strings for consumption.
+     */
+    private readonly textDecoder: TextDecoder;
+
+    /**
      * Constructor.
      *
      * @param {workspace} workspace The VS Code workspace our configuration is in.
@@ -73,6 +79,7 @@ export class Configuration {
     public constructor(workspace: typeof vsCodeWorkspace) {
         this.workspace = workspace;
         this.cache = new Map();
+        this.textDecoder = new TextDecoder();
     }
 
     /**
@@ -136,8 +143,22 @@ export class Configuration {
             // Start in the document's directory.
             let dir: Uri = Uri.joinPath(document.uri, '..');
             while (dir.path !== '.') {
-                const phpcsPath = Uri.joinPath(dir, 'vendor/bin/phpcs');
                 try {
+                    const composerPath = Uri.joinPath(dir, 'composer.json');
+
+                    const composerFile = JSON.parse(
+                        this.textDecoder.decode(
+                            await this.workspace.fs.readFile(composerPath)
+                        )
+                    );
+
+                    let vendorDir = 'vendor';
+                    if (composerFile && composerFile.config && composerFile.config['vendor-dir']) {
+                        vendorDir = composerFile.config['vendor-dir'];
+                    }
+
+                    const phpcsPath = Uri.joinPath(dir, vendorDir + '/bin/phpcs');
+
                     await this.workspace.fs.stat(phpcsPath);
 
                     // We've found an executable.

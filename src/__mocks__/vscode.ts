@@ -126,6 +126,7 @@ const workspace = {
     getWorkspaceFolder: jest.fn(),
     getConfiguration: jest.fn(),
     fs: {
+        readFile: jest.fn(),
         stat: jest.fn()
     }
 };
