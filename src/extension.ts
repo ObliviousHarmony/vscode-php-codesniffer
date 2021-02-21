@@ -9,6 +9,7 @@ import { FormatDocumentProvider } from './providers/format-document-provider';
 import { CodeActionEditResolver } from './services/code-action-edit-resolver';
 import { DiagnosticUpdater } from './services/diagnostic-updater';
 import { DocumentFormatter } from './services/document-formatter';
+import { Logger } from './logger';
 
 export function activate(context: ExtensionContext): void {
     // We will store all of the diagnostics and code actions
@@ -18,16 +19,18 @@ export function activate(context: ExtensionContext): void {
     const codeActionCollection = new CodeActionCollection();
 
     // Create all of our dependencies.
+    const logger = new Logger(window);
     const configuration = new Configuration(workspace);
     const workerPool = new WorkerPool(10);
     const diagnosticUpdater = new DiagnosticUpdater(
+        logger,
         configuration,
         workerPool,
         diagnosticCollection,
         codeActionCollection
     );
-    const codeActionEditResolver = new CodeActionEditResolver(configuration, workerPool);
-    const documentFormatter = new DocumentFormatter(configuration, workerPool);
+    const codeActionEditResolver = new CodeActionEditResolver(logger, configuration, workerPool);
+    const documentFormatter = new DocumentFormatter(logger, configuration, workerPool);
     const commandProvider = new CommandProvider();
     const workspaceListener = new WorkspaceListener(
         configuration,

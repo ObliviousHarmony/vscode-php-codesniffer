@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticCollection, workspace, Range, DiagnosticSeverity, CodeActionKind } from 'vscode';
+import { Diagnostic, DiagnosticCollection, workspace, window, Range, DiagnosticSeverity, CodeActionKind } from 'vscode';
 import { CodeAction, CodeActionCollection } from '../../code-action';
 import { Configuration, StandardType } from '../../configuration';
 import { WorkerPool } from '../../phpcs-report/worker-pool';
@@ -7,6 +7,7 @@ import { MockDiagnosticCollection, MockTextDocument } from '../../__mocks__/vsco
 import { mocked } from 'ts-jest/utils';
 import { Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
+import { Logger } from '../../logger';
 
 jest.mock('../../phpcs-report/report-files', () => {
     return {
@@ -22,6 +23,7 @@ jest.mock('../../phpcs-report/report-files', () => {
         }
     };
 });
+jest.mock('../../logger');
 jest.mock('../../configuration');
 jest.mock('../../phpcs-report/worker');
 jest.mock('../../phpcs-report/worker-pool');
@@ -39,6 +41,7 @@ jest.mock('../../code-action', () => {
 });
 
 describe('DiagnosticUpdater', () => {
+    let mockLogger: Logger;
     let mockConfiguration: Configuration;
     let mockWorkerPool: WorkerPool;
     let mockDiagnosticCollection: DiagnosticCollection;
@@ -46,12 +49,14 @@ describe('DiagnosticUpdater', () => {
     let diagnosticUpdater: DiagnosticUpdater;
 
     beforeEach(() => {
+        mockLogger = new Logger(window);
         mockConfiguration = new Configuration(workspace);
         mockWorkerPool = new WorkerPool(1);
         mockDiagnosticCollection = new MockDiagnosticCollection();
         mockCodeActionCollection = new CodeActionCollection();
 
         diagnosticUpdater = new DiagnosticUpdater(
+            mockLogger,
             mockConfiguration,
             mockWorkerPool,
             mockDiagnosticCollection,

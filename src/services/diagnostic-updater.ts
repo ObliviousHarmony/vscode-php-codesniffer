@@ -1,8 +1,10 @@
 import { CancellationError, DiagnosticCollection, TextDocument } from 'vscode';
 import { CodeActionCollection } from '../code-action';
 import { Configuration } from '../configuration';
+import { Logger } from '../logger';
 import { Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
+import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
 
@@ -23,18 +25,20 @@ export class DiagnosticUpdater extends WorkerService {
     /**
      * Constructor.
      *
+     * @param {Logger} logger The logger to use.
      * @param {Configuration} configuration The configuration object to use.
      * @param {WorkerPool} workerPool The worker pool to use.
      * @param {DiagnosticCollection} diagnosticCollection The collection of diagnostics we are responsible for.
      * @param {CodeActionCollection} codeActionCollection The collection of code actions that we're responsible for.
      */
     public constructor(
+        logger: Logger,
         configuration: Configuration,
         workerPool: WorkerPool,
         diagnosticCollection: DiagnosticCollection,
         codeActionCollection: CodeActionCollection
     ) {
-        super(configuration, workerPool);
+        super(logger, configuration, workerPool);
 
         this.diagnosticCollection = diagnosticCollection;
         this.codeActionCollection = codeActionCollection;
@@ -106,6 +110,12 @@ export class DiagnosticUpdater extends WorkerService {
             .catch((e) => {
                 // Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
                 if (e instanceof CancellationError) {
+                    return;
+                }
+
+                // We should send PHPCS errors to be logged and presented to the user.
+                if (e instanceof PHPCSError) {
+                    this.logger.error(e);
                     return;
                 }
 
