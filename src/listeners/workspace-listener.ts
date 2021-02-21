@@ -40,6 +40,11 @@ export class WorkspaceListener implements Disposable {
     private readonly documents: Map<Uri, TextDocument>;
 
     /**
+     * A map containing the document version the last time the diagnostics were updated.
+     */
+    private readonly lastDiagnosticVersion: Map<Uri, number>;
+
+    /**
      * A map for applying a debounce to document updates.
      */
     private readonly updateDebounceMap: Map<Uri, NodeJS.Timeout>;
@@ -68,6 +73,7 @@ export class WorkspaceListener implements Disposable {
         this.codeActionEditResolver = codeActionEditResolver;
         this.documentFormatter = documentFormatter;
         this.documents = new Map();
+        this.lastDiagnosticVersion = new Map();
         this.updateDebounceMap = new Map();
         this.subscriptions = [];
     }
@@ -172,6 +178,13 @@ export class WorkspaceListener implements Disposable {
             return;
         }
         this.documents.set(document.uri, document);
+
+        // Don't update documents that haven't changed since the last time
+        const lastVersion = this.lastDiagnosticVersion.get(document.uri);
+        if (lastVersion === document.version) {
+            return;
+        }
+        this.lastDiagnosticVersion.set(document.uri, document.version);
 
         // Apply a debounce so that we don't perform the update too quickly.
         let debounce = this.updateDebounceMap.get(document.uri);

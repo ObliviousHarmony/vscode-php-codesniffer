@@ -1,4 +1,5 @@
 import { CancellationToken, CancellationTokenSource, Disposable, TextDocument, Uri } from 'vscode';
+import { Logger } from '../logger';
 import { Configuration } from '../configuration';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 
@@ -6,6 +7,11 @@ import { WorkerPool } from '../phpcs-report/worker-pool';
  * A base class for all of the updates that interact with PHPCS.
  */
 export abstract class WorkerService implements Disposable {
+    /**
+     * The logger to use.
+     */
+    protected readonly logger: Logger;
+
     /**
      * The configuration object.
      */
@@ -24,10 +30,12 @@ export abstract class WorkerService implements Disposable {
     /**
      * Constructor.
      *
+     * @param {Logger} logger The logger to use.
      * @param {Configuration} configuration The configuration object to use.
      * @param {WorkerPool} workerPool The worker pool to use.
      */
-    public constructor(configuration: Configuration, workerPool: WorkerPool) {
+    public constructor(logger: Logger, configuration: Configuration, workerPool: WorkerPool) {
+        this.logger = logger;
         this.configuration = configuration;
         this.workerPool = workerPool;
         this.cancellationTokenSourceMap = new Map();

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Automatically attempt to find a `bin/phpcs` file in a vendor directory when `phpCodeSniffer.autoExecutable` is enabled.
+- Display PHPCS errors to the user.
+- Check document version before unnecessarily rebuilding diagnostics.
 
 ### Fixed
 - Range formatting.
