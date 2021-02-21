@@ -14,6 +14,34 @@ import { ReportType, Response } from './response';
 type ActiveChangedCallback = (worker: Worker) => void;
 
 /**
+ * A custom error type for those that come from PHPCS.
+ */
+export class PHPCSError extends Error {
+    /**
+     * The output from the command.
+     */
+    public readonly output: string;
+
+    /**
+     * The error output from the command.
+     */
+    public readonly errorOutput: string;
+
+    /**
+     * Constructor.
+     *
+     * @param {string} output The output from the command.
+     * @param {string} errorOutput The error output from the command.
+     */
+    public constructor(output: string, errorOutput: string) {
+        super('The PHPCS worker encountered an error.');
+
+        this.output = output;
+        this.errorOutput = errorOutput;
+    }
+}
+
+/**
  * A worker for getting reports out of PHPCS and returning them to the consumer.
  */
 export class Worker {
@@ -196,8 +224,7 @@ export class Worker {
             }
 
             if (code !== 0) {
-                console.error(pendingReport, pendingError);
-                resolve(Response.fromRaw(request.type, ''));
+                reject(new PHPCSError(pendingReport, pendingError));
                 return;
             }
 
