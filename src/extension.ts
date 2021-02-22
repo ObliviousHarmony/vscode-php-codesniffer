@@ -40,6 +40,7 @@ export function activate(context: ExtensionContext): void {
     );
 
     // Make sure all of our dependencies will be cleaned up.
+    context.subscriptions.push(logger);
     context.subscriptions.push(diagnosticUpdater);
     context.subscriptions.push(codeActionEditResolver);
     context.subscriptions.push(documentFormatter);

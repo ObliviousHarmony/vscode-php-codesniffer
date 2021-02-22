@@ -40,11 +40,6 @@ export class WorkspaceListener implements Disposable {
     private readonly documents: Map<Uri, TextDocument>;
 
     /**
-     * A map containing the document version the last time the diagnostics were updated.
-     */
-    private readonly lastDiagnosticVersion: Map<Uri, number>;
-
-    /**
      * A map for applying a debounce to document updates.
      */
     private readonly updateDebounceMap: Map<Uri, NodeJS.Timeout>;
@@ -73,7 +68,6 @@ export class WorkspaceListener implements Disposable {
         this.codeActionEditResolver = codeActionEditResolver;
         this.documentFormatter = documentFormatter;
         this.documents = new Map();
-        this.lastDiagnosticVersion = new Map();
         this.updateDebounceMap = new Map();
         this.subscriptions = [];
     }
@@ -100,11 +94,18 @@ export class WorkspaceListener implements Disposable {
      * @param {window} window The VS Code window.
      */
     public start(workspace: typeof vsCodeWorkspace, window: typeof vsCodeWindow): void {
-        // Listen to all of the document events that we care about.
+        // The opening and closing of documents will dictate whether we're listening for updates or not.
         this.subscriptions.push(workspace.onDidOpenTextDocument((e) => this.onOpen(e)));
         this.subscriptions.push(workspace.onDidCloseTextDocument((e) => this.onClose(e)));
-        this.subscriptions.push(workspace.onDidChangeTextDocument((e) => this.onUpdate(e.document)));
-        this.subscriptions.push(workspace.onDidSaveTextDocument((e) => this.onUpdate(e)));
+
+        // When the text document's content is changed we should update the diagnostics as they're likely invalid.
+        this.subscriptions.push(workspace.onDidChangeTextDocument((e) => {
+            if (e.contentChanges.length < 1) {
+                return;
+            }
+
+            this.onUpdate(e.document);
+        }));
 
         // When the configuration changes we need to invalidate all of the documents
         // since it may have affected the output of our commands.
@@ -179,12 +180,7 @@ export class WorkspaceListener implements Disposable {
         }
         this.documents.set(document.uri, document);
 
-        // Don't update documents that haven't changed since the last time
-        const lastVersion = this.lastDiagnosticVersion.get(document.uri);
-        if (lastVersion === document.version) {
-            return;
-        }
-        this.lastDiagnosticVersion.set(document.uri, document.version);
+        console.log('Update');
 
         // Apply a debounce so that we don't perform the update too quickly.
         let debounce = this.updateDebounceMap.get(document.uri);
