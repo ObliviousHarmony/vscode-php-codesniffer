@@ -16,6 +16,14 @@ export enum StandardType {
 }
 
 /**
+ * An interface describing the path to an executable.
+ */
+interface ExecutablePath {
+    workingDirectory: string,
+    executable: string
+}
+
+/**
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
@@ -129,62 +137,24 @@ export class Configuration {
      * @param {boolean} findExecutable Indicates whether or not we should perform an executable search.
      */
     private async readFilesystem(document: TextDocument, findExecutable: boolean): Promise<ParamsFromFilesystem> {
-        // The top-level folder will serve as the endpoint for our traversal.
+        // The workspace folder for the document is our default working directory.
         const workspaceFolder = this.getWorkspaceFolder(document);
 
-        // By default the working directory will be the workspace folder for the document.
-        let workingDirectory = workspaceFolder.fsPath;
+        // Prepare the parameters that come from the filesystem.
+        const fsParams: ParamsFromFilesystem = {
+            workingDirectory: workspaceFolder.fsPath
+        };
 
-        // When desired we will attempt to find a PHPCS executable by scanning for a `vendor/bin/phpcs` file
-        // in the document's directory. If that fails we will attempt the same in each parent directory
-        // until we reach the workspace directory.
-        let executable: string|undefined = undefined;
+        // When an executable is requested we should attempt to populate the params with one.
         if (findExecutable) {
-            // Start in the document's directory.
-            let dir: Uri = Uri.joinPath(document.uri, '..');
-            while (dir.path !== '.') {
-                try {
-                    const composerPath = Uri.joinPath(dir, 'composer.json');
-
-                    const composerFile = JSON.parse(
-                        this.textDecoder.decode(
-                            await this.workspace.fs.readFile(composerPath)
-                        )
-                    );
-
-                    let vendorDir = 'vendor';
-                    if (composerFile && composerFile.config && composerFile.config['vendor-dir']) {
-                        vendorDir = composerFile.config['vendor-dir'];
-                    }
-
-                    const phpcsPath = Uri.joinPath(dir, vendorDir + '/bin/phpcs');
-
-                    await this.workspace.fs.stat(phpcsPath);
-
-                    // We've found an executable.
-                    executable = phpcsPath.fsPath;
-
-                    // The working directory should be considered the directory for the project containing PHPCS.
-                    workingDirectory = dir.fsPath;
-                    break;
-                } catch (e) {
-                    // Only errors indicating from the filesystem are relevant.
-                    if (!(e instanceof FileSystemError)) {
-                        throw e;
-                    }
-
-                    // Stop once we reach the workspace folder.
-                    if (dir.toString() === workspaceFolder.toString()) {
-                        break;
-                    }
-
-                    dir = Uri.joinPath(dir, '..');
-                    continue;
-                }
+            const executable = findExecutable ? await this.findExecutable(document.uri, workspaceFolder) : null;
+            if (executable) {
+                fsParams.workingDirectory = executable.workingDirectory;
+                fsParams.executable = executable.executable;
             }
         }
 
-        return { workingDirectory, executable };
+        return fsParams;
     }
 
     /**
@@ -238,5 +208,90 @@ export class Configuration {
 
         // When we can't infer a path just use the directory of the document.
         return Uri.joinPath(document.uri, '..');
+    }
+
+    /**
+     * Attempts to find an executable by traversing from the document's directory to the workspace folder.
+     *
+     * @param {Uri} documentUri The URI of the document to find an executable for.
+     * @param {Uri} workspaceFolder The URI of the workspace folder for the document.
+     */
+    private async findExecutable(documentUri: Uri, workspaceFolder: Uri): Promise<ExecutablePath|null> {
+        // Where we start the traversal will depend on the scheme of the document.
+        let directory: Uri;
+        switch (documentUri.scheme) {
+            // Untitled files have no path and should just check the workspace folder.
+            case 'untitled':
+                directory = workspaceFolder;
+                break;
+
+            // Real files will traverse from their directory to the workspace folder.
+            case 'file':
+                directory = Uri.joinPath(documentUri, '..');
+                break;
+
+            // Since we can't execute the binary in any other scheme there's nothing to do.
+            default: return null;
+        }
+
+        // We're going to traverse from the file's directory to the workspace
+        // folder looking for an executable that can be used in the worker.
+        while (directory.path !== '/') {
+            const found = await this.findExecutableInDirectory(directory);
+            if (found) {
+                return found;
+            }
+
+            // Stop once we reach the workspace folder.
+            if (directory.toString() === workspaceFolder.toString()) {
+                break;
+            }
+
+            // Move to the parent directory and check again.
+            directory = Uri.joinPath(directory, '..');
+        }
+
+        return null;
+    }
+
+    /**
+     * Attempts to find an executable in the given directory and returns the path to it if found.
+     *
+     * @param {Uri} directory The directory we're checking for an executable in.
+     */
+    private async findExecutableInDirectory(directory: Uri): Promise<ExecutablePath|null> {
+        try {
+            // We should be aware of custom vendor directories so that
+            // we can find the executable in the correct location.
+            const composerPath = Uri.joinPath(directory, 'composer.json');
+
+            const composerFile = JSON.parse(
+                this.textDecoder.decode(
+                    await this.workspace.fs.readFile(composerPath)
+                )
+            );
+
+            let vendorDir = 'vendor';
+            if (composerFile && composerFile.config && composerFile.config['vendor-dir']) {
+                vendorDir = composerFile.config['vendor-dir'];
+            }
+
+            // The stat() call will throw an error if the file could not be found.
+            const phpcsPath = Uri.joinPath(directory, vendorDir + '/bin/phpcs');
+            await this.workspace.fs.stat(phpcsPath);
+
+            // The lack of an error indicates that the file exists.
+            return {
+                workingDirectory: directory.fsPath,
+                executable: phpcsPath.fsPath
+            };
+        } catch (e) {
+            // Only errors from the filesystem are relevant.
+            if (!(e instanceof FileSystemError)) {
+                throw e;
+            }
+        }
+
+        return null;
     }
 }
