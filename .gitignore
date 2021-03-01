@@ -2,7 +2,9 @@
 .DS_Store
 
 # Project Files
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # Build Artifacts
 out/
