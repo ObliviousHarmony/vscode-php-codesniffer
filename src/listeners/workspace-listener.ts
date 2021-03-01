@@ -180,8 +180,6 @@ export class WorkspaceListener implements Disposable {
         }
         this.documents.set(document.uri, document);
 
-        console.log('Update');
-
         // Apply a debounce so that we don't perform the update too quickly.
         let debounce = this.updateDebounceMap.get(document.uri);
         if (debounce) {

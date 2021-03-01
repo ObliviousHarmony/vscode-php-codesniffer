@@ -113,7 +113,7 @@ const TextEdit = jest.fn().mockImplementation((range, newContent) => {
 class FileSystemError extends Error {
     public readonly code: string;
 
-    public constructor(messageOrUri: string | typeof Uri) {
+    public constructor(messageOrUri: string|typeof Uri) {
         super(messageOrUri.toString());
 
         this.code = '';
