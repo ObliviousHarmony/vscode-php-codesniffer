@@ -96,7 +96,7 @@ export class Worker {
 
             // When a consumer passes a cancellation token we will use that to signal
             // that the running request should be terminated and the worker freed.
-            let cancellationHandler: Disposable | null = null;
+            let cancellationHandler: Disposable|null = null;
             if (cancellationToken) {
                 // Keep track of the handler so that we can remove it when cancellation is no longer possible.
                 cancellationHandler = cancellationToken.onCancellationRequested(() => this.onCancellation(cancellationToken));
