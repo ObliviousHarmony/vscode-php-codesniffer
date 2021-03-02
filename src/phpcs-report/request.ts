@@ -49,6 +49,11 @@ export interface Request<T extends ReportType> {
     type: T;
 
     /**
+     * The filesystem path for the document that the report is being generated for.
+     */
+    documentPath: string;
+
+    /**
      * The content for the document that the report is being generated for.
      */
     documentContent: string;

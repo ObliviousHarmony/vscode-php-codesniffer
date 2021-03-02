@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2021-03-01
 ### Fixed
+- Pass file path to `phpcs` for use in sniffs.
 - Handle Uri schemes other than `'file'`.
 
 ## [0.4.1] - 2021-02-22

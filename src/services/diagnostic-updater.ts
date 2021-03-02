@@ -82,6 +82,7 @@ export class DiagnosticUpdater extends WorkerService {
                 // Use the worker to make a request for a diagnostic report.
                 const request: Request<ReportType.Diagnostic> = {
                     type: ReportType.Diagnostic,
+                    documentPath: document.uri.fsPath,
                     documentContent: document.getText(),
                     options: {
                         workingDirectory: config.workingDirectory,

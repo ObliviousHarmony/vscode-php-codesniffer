@@ -44,6 +44,7 @@ export class DocumentFormatter extends WorkerService {
                 // Use the worker to make a request for a format report.
                 const request: Request<ReportType.Format> = {
                     type: ReportType.Format,
+                    documentPath: document.uri.fsPath,
                     documentContent: document.getText(),
                     options: {
                         workingDirectory: config.workingDirectory,
