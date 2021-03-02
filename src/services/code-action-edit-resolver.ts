@@ -46,6 +46,7 @@ export class CodeActionEditResolver extends WorkerService {
                 // Use the worker to make a request for a code action report.
                 const request: Request<ReportType.CodeAction> = {
                     type: ReportType.CodeAction,
+                    documentPath: document.uri.fsPath,
                     documentContent: document.getText(),
                     options: {
                         workingDirectory: config.workingDirectory,

@@ -46,6 +46,7 @@ describe('Worker/WorkerPool Integration', () => {
             .then((worker) => {
                 const request: Request<ReportType.Diagnostic> = {
                     type: ReportType.Diagnostic,
+                    documentPath: 'Test.php',
                     documentContent: '<?php class Test {}',
                     options: {
                         workingDirectory: __dirname,
@@ -74,6 +75,7 @@ describe('Worker/WorkerPool Integration', () => {
             .then((worker) => {
                 const request: Request<ReportType.Diagnostic> = {
                     type: ReportType.Diagnostic,
+                    documentPath: 'Test.php',
                     documentContent: '<?php class Test {}',
                     options: {
                         workingDirectory: __dirname,
