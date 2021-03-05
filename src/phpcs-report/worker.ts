@@ -90,7 +90,7 @@ export class Worker {
         return new Promise<Response<T>>((resolve, reject) => {
             // Under certain circumstances we shouldn't bother generating a report because it will be empty.
             if (request.options.standard === 'Disabled' || request.documentContent.length <= 0) {
-                resolve(Response.fromRaw(request.type, ''));
+                resolve(Response.empty(request.type));
                 return;
             }
 

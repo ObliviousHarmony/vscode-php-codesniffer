@@ -3,7 +3,7 @@ import { CodeActionCollection } from '../code-action';
 import { Configuration } from '../configuration';
 import { Logger } from '../logger';
 import { Request } from '../phpcs-report/request';
-import { ReportType } from '../phpcs-report/response';
+import { ReportType, Response } from '../phpcs-report/response';
 import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
@@ -78,6 +78,14 @@ export class DiagnosticUpdater extends WorkerService {
         this.workerPool.waitForAvailable('diagnostic:' + document.fileName, cancellationToken)
             .then(async (worker) => {
                 const config = await this.configuration.get(document);
+
+                // Check the file's path against our ignore patterns so that we don't process
+                // diagnostics for files that the user is not interested in receiving them for.
+                for (const pattern of config.ignorePatterns) {
+                    if (pattern.test(document.uri.fsPath)) {
+                        return Response.empty(ReportType.Diagnostic);
+                    }
+                }
 
                 // Use the worker to make a request for a diagnostic report.
                 const request: Request<ReportType.Diagnostic> = {

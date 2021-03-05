@@ -35,6 +35,7 @@ jest.mock('../../code-action', () => {
         CodeActionCollection: jest.fn().mockImplementation(() => {
             return {
                 set: jest.fn(),
+                delete: jest.fn()
             };
         })
     };
@@ -64,7 +65,7 @@ describe('DiagnosticUpdater', () => {
         );
     });
 
-    it('should update diagnostics and code actions', () => {
+    it('should update diagnostics and code actions', async (done) => {
         const document = new MockTextDocument();
         document.fileName = 'test-document';
 
@@ -79,6 +80,7 @@ describe('DiagnosticUpdater', () => {
             {
                 workingDirectory: 'test-dir',
                 executable: 'phpcs-test',
+                ignorePatterns: [],
                 standard: StandardType.PSR12
             }
         );
@@ -107,7 +109,51 @@ describe('DiagnosticUpdater', () => {
                     }
                 };
 
+                // Wait for the updater to process the result before completing the test.
+                setTimeout(
+                    () => {
+                        expect(mockDiagnosticCollection.set).toHaveBeenCalled();
+                        expect(mockCodeActionCollection.set).toHaveBeenCalled();
+                        done();
+                    },
+                    5
+                );
+
                 return Promise.resolve(response);
+            }
+        );
+
+        diagnosticUpdater.update(document);
+    });
+
+    it('should respect ignore patterns', async (done) => {
+        const document = new MockTextDocument();
+        document.fileName = 'test-document';
+
+        const mockWorker = new Worker();
+        mocked(mockWorkerPool).waitForAvailable.mockImplementation(
+            (workerKey) => {
+                expect(workerKey).toBe('diagnostic:test-document');
+
+                // Wait for the updater to process the result before completing the test.
+                setTimeout(
+                    () => {
+                        expect(mockDiagnosticCollection.delete).toHaveBeenCalledWith(document.uri);
+                        expect(mockCodeActionCollection.delete).toHaveBeenCalledWith(document.uri);
+                        done();
+                    },
+                    5
+                );
+
+                return Promise.resolve(mockWorker);
+            }
+        )
+        mocked(mockConfiguration).get.mockResolvedValue(
+            {
+                workingDirectory: 'test-dir',
+                executable: 'phpcs-test',
+                ignorePatterns: [ new RegExp('.*/file/.*') ],
+                standard: StandardType.PSR12
             }
         );
 

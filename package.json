@@ -45,10 +45,19 @@
           "default": "phpcs",
           "scope": "machine-overridable"
         },
+        "phpCodeSniffer.ignorePatterns": {
+          "type": "array",
+          "description": "An array of regular expressions for paths that should be ignored by the extension.",
+          "default": [ ".*/vendor/.*" ],
+          "items": {
+            "type": "string"
+          },
+          "scope": "window"
+        },
         "phpCodeSniffer.standard": {
           "type": "string",
-          "default": "Disabled",
           "description": "The coding standard that should be used by PHPCS.",
+          "default": "Disabled",
           "enum": [
             "Disabled",
             "Default",

@@ -2,7 +2,7 @@ import { ReportType, Response } from '../response';
 
 describe('Response', () => {
     it('should parse empty reports', () => {
-        const response = Response.fromRaw(ReportType.Diagnostic, '');
+        const response = Response.empty(ReportType.Diagnostic);
 
         expect(response.type).toBe(0);
         expect(response.report).toBeUndefined();
