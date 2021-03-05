@@ -1,5 +1,5 @@
 import { TextDocument, workspace, Uri as vsCodeUri, FileSystemError } from 'vscode';
-import { MockTextDocument, Uri } from '../__mocks__/vscode';
+import { MockTextDocument, Uri } from '../../__mocks__/vscode';
 import { TextEncoder } from 'util';
 import { mocked } from 'ts-jest/utils';
 import { Configuration, StandardType } from '../configuration';
@@ -51,9 +51,10 @@ describe('Configuration', () => {
 
         mockConfiguration.get.mockImplementation((key) => {
             switch (key) {
-                case 'standard': return StandardType.Disabled;
-                case 'executable': return 'test.exec';
                 case 'autoExecutable': return false;
+                case 'executable': return 'test.exec';
+                case 'ignorePatterns': return [ 'test' ];
+                case 'standard': return StandardType.Disabled;
             }
 
             fail('An unexpected configuration key of ' + key + ' was received.')
@@ -63,9 +64,10 @@ describe('Configuration', () => {
 
         expect(workspace.getConfiguration).toHaveBeenCalledWith('phpCodeSniffer', mockDocument);
         expect(result).toMatchObject({
+            workingDirectory: 'test/file',
             executable: 'test.exec',
-            standard: StandardType.Disabled,
-            workingDirectory: 'test/file'
+            ignorePatterns: [ new RegExp('test') ],
+            standard: StandardType.Disabled
         });
 
         // Make sure that a subsequent fetch loads a cached instance.
@@ -117,9 +119,10 @@ describe('Configuration', () => {
 
         mockConfiguration.get.mockImplementation((key) => {
             switch (key) {
-                case 'standard': return StandardType.Disabled;
-                case 'executable': return 'test.exec';
                 case 'autoExecutable': return true;
+                case 'executable': return 'test.exec';
+                case 'ignorePatterns': return [ 'test' ];
+                case 'standard': return StandardType.Disabled;
             }
 
             fail('An unexpected configuration key of ' + key + ' was received.')
@@ -129,9 +132,10 @@ describe('Configuration', () => {
 
         expect(workspace.getConfiguration).toHaveBeenCalledWith('phpCodeSniffer', mockDocument);
         expect(result).toMatchObject({
+            workingDirectory: 'test',
             executable: 'test/newvendor/bin/phpcs',
-            standard: StandardType.Disabled,
-            workingDirectory: 'test'
+            ignorePatterns: [ new RegExp('test') ],
+            standard: StandardType.Disabled
         });
 
         // Make sure that a subsequent fetch loads a cached instance.

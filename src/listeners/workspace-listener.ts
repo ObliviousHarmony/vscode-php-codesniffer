@@ -5,7 +5,7 @@ import {
     window as vsCodeWindow,
     workspace as vsCodeWorkspace
 } from 'vscode';
-import { Configuration } from '../configuration';
+import { Configuration } from '../services/configuration';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 import { DiagnosticUpdater } from '../services/diagnostic-updater';
 import { DocumentFormatter } from '../services/document-formatter';

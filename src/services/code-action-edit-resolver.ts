@@ -1,5 +1,5 @@
 import { CancellationToken, WorkspaceEdit } from 'vscode';
-import { CodeAction } from '../code-action';
+import { CodeAction } from '../types';
 import { Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
 import { WorkerService } from './worker-service'

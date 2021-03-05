@@ -35,9 +35,10 @@ interface ParamsFromFilesystem {
  * An interface describing the configuration parameters we can read from the workspace configuration.
  */
 interface ParamsFromConfiguration {
-    standard: string;
     autoExecutable: boolean;
     executable: string;
+    ignorePatterns: RegExp[];
+    standard: string;
 }
 
 /**
@@ -53,6 +54,11 @@ export interface DocumentConfiguration {
      * The executable we should use in the worker.
      */
     executable: string;
+
+    /**
+     * The ignore patterns we should use when executing reports/
+     */
+    ignorePatterns: RegExp[];
 
     /**
      * The standard we should use when executing reports.
@@ -109,6 +115,7 @@ export class Configuration {
         config = {
             workingDirectory: fromFilesystem.workingDirectory,
             executable: fromFilesystem.executable ?? fromConfig.executable,
+            ignorePatterns: fromConfig.ignorePatterns,
             standard: fromConfig.standard
         };
         this.cache.set(document.uri, config);
@@ -168,14 +175,6 @@ export class Configuration {
             throw new Error('The extension has no configuration.');
         }
 
-        let standard = config.get<string>('standard');
-        if (standard === StandardType.Custom) {
-            standard = config.get<string>('standardCustom');
-        }
-        if (!standard) {
-            standard = StandardType.Disabled;
-        }
-
         const autoExecutable = config.get<boolean>('autoExecutable');
         if (autoExecutable === undefined) {
             throw new Error('The extension has an invalid `autoExecutable` configuration.');
@@ -186,7 +185,21 @@ export class Configuration {
             throw new Error('The extension has an invalid `executable` configuration.');
         }
 
-        return { standard, autoExecutable, executable };
+        const rawPatterns = config.get<string[]>('ignorePatterns');
+        if (!Array.isArray(rawPatterns)) {
+            throw new Error('The extension has an invalid `ignorePatterns` configuration.');
+        }
+        const ignorePatterns = rawPatterns.map((v) => new RegExp(v));
+
+        let standard = config.get<string>('standard');
+        if (standard === StandardType.Custom) {
+            standard = config.get<string>('standardCustom');
+        }
+        if (!standard) {
+            standard = StandardType.Disabled;
+        }
+
+        return { autoExecutable, executable, ignorePatterns, standard };
     }
 
     /**

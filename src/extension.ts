@@ -1,6 +1,6 @@
 import { commands, ExtensionContext, languages, window, workspace } from 'vscode';
-import { CodeActionCollection } from './code-action';
-import { Configuration } from './configuration';
+import { CodeActionCollection } from './types';
+import { Configuration } from './services/configuration';
 import { WorkspaceListener } from './listeners/workspace-listener';
 import { WorkerPool } from './phpcs-report/worker-pool';
 import { CodeActionProvider } from './providers/code-action-provider';
@@ -9,7 +9,7 @@ import { FormatDocumentProvider } from './providers/format-document-provider';
 import { CodeActionEditResolver } from './services/code-action-edit-resolver';
 import { DiagnosticUpdater } from './services/diagnostic-updater';
 import { DocumentFormatter } from './services/document-formatter';
-import { Logger } from './logger';
+import { Logger } from './services/logger';
 
 export function activate(context: ExtensionContext): void {
     // We will store all of the diagnostics and code actions

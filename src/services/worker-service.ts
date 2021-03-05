@@ -1,6 +1,6 @@
 import { CancellationToken, CancellationTokenSource, Disposable, TextDocument, Uri } from 'vscode';
-import { Logger } from '../logger';
-import { Configuration } from '../configuration';
+import { Logger } from './logger';
+import { Configuration } from './configuration';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 
 /**

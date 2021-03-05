@@ -1,5 +1,5 @@
 import { CodeActionKind, Diagnostic, DiagnosticSeverity, Range, TextEdit } from 'vscode';
-import { CodeAction } from '../code-action';
+import { CodeAction } from '../types';
 
 /**
  * The type of PHPCS report that a request should fetch.
@@ -170,5 +170,14 @@ export class Response<T extends ReportType> {
         }
 
         throw new Error(`An invalid report type of "${type}" was used.`);
+    }
+
+    /**
+     * Generates an empty response of a given report type.
+     *
+     * @param {ReportType} type The type of report that the response contains.
+     */
+    public static empty<T extends ReportType>(type: T): Response<T> {
+        return new Response(type);
     }
 }

@@ -1,6 +1,6 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
-import { StandardType } from '../configuration';
+import { StandardType } from '../services/configuration';
 import { ReportFiles } from './report-files';
 import { Request } from './request';
 import { ReportType, Response } from './response';
@@ -90,7 +90,7 @@ export class Worker {
         return new Promise<Response<T>>((resolve, reject) => {
             // Under certain circumstances we shouldn't bother generating a report because it will be empty.
             if (request.options.standard === 'Disabled' || request.documentContent.length <= 0) {
-                resolve(Response.fromRaw(request.type, ''));
+                resolve(Response.empty(request.type));
                 return;
             }
 
