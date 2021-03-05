@@ -1,5 +1,5 @@
 import { Disposable, OutputChannel, window as vsCodeWindow } from 'vscode';
-import { PHPCSError } from './phpcs-report/worker';
+import { PHPCSError } from '../phpcs-report/worker';
 
 /**
  * A logger for presenting errors to the user.

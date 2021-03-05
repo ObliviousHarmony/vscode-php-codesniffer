@@ -1,6 +1,6 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
-import { StandardType } from '../configuration';
+import { StandardType } from '../services/configuration';
 import { ReportFiles } from './report-files';
 import { Request } from './request';
 import { ReportType, Response } from './response';

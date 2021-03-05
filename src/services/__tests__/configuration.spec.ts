@@ -1,5 +1,5 @@
 import { TextDocument, workspace, Uri as vsCodeUri, FileSystemError } from 'vscode';
-import { MockTextDocument, Uri } from '../__mocks__/vscode';
+import { MockTextDocument, Uri } from '../../__mocks__/vscode';
 import { TextEncoder } from 'util';
 import { mocked } from 'ts-jest/utils';
 import { Configuration, StandardType } from '../configuration';

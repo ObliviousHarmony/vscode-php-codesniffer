@@ -1,7 +1,7 @@
 import { CancellationError, DiagnosticCollection, TextDocument } from 'vscode';
-import { CodeActionCollection } from '../code-action';
-import { Configuration } from '../configuration';
-import { Logger } from '../logger';
+import { CodeActionCollection } from '../types';
+import { Configuration } from './configuration';
+import { Logger } from './logger';
 import { Request } from '../phpcs-report/request';
 import { ReportType, Response } from '../phpcs-report/response';
 import { PHPCSError } from '../phpcs-report/worker';

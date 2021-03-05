@@ -1,13 +1,13 @@
 import { Diagnostic, DiagnosticCollection, workspace, window, Range, DiagnosticSeverity, CodeActionKind } from 'vscode';
-import { CodeAction, CodeActionCollection } from '../../code-action';
-import { Configuration, StandardType } from '../../configuration';
+import { CodeAction, CodeActionCollection } from '../../types';
+import { Configuration, StandardType } from '../../services/configuration';
 import { WorkerPool } from '../../phpcs-report/worker-pool';
 import { DiagnosticUpdater } from '../diagnostic-updater';
 import { MockDiagnosticCollection, MockTextDocument } from '../../__mocks__/vscode';
 import { mocked } from 'ts-jest/utils';
 import { Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
-import { Logger } from '../../logger';
+import { Logger } from '../../services/logger';
 
 jest.mock('../../phpcs-report/report-files', () => {
     return {
@@ -23,11 +23,11 @@ jest.mock('../../phpcs-report/report-files', () => {
         }
     };
 });
-jest.mock('../../logger');
-jest.mock('../../configuration');
+jest.mock('..//logger');
+jest.mock('../configuration');
 jest.mock('../../phpcs-report/worker');
 jest.mock('../../phpcs-report/worker-pool');
-jest.mock('../../code-action', () => {
+jest.mock('../../types', () => {
     return {
         CodeAction: jest.fn().mockImplementation((title, kind) => {
             return { title, kind };

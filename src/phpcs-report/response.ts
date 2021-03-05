@@ -1,5 +1,5 @@
 import { CodeActionKind, Diagnostic, DiagnosticSeverity, Range, TextEdit } from 'vscode';
-import { CodeAction } from '../code-action';
+import { CodeAction } from '../types';
 
 /**
  * The type of PHPCS report that a request should fetch.

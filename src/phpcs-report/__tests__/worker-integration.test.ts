@@ -3,7 +3,7 @@ import * as child_process from 'child_process';
 import { Request } from '../request';
 import { ReportType } from '../response';
 import { WorkerPool } from '../worker-pool';
-import { StandardType } from '../../configuration';
+import { StandardType } from '../../services/configuration';
 import { CancellationError } from 'vscode';
 import { MockCancellationToken } from '../../__mocks__/vscode';
 

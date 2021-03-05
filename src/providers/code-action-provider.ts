@@ -8,7 +8,7 @@ import {
     Range,
     TextDocument,
 } from 'vscode';
-import { CodeAction, CodeActionCollection } from '../code-action';
+import { CodeAction, CodeActionCollection } from '../types';
 import { IgnoreLineCommand } from '../commands/ignore-line-command';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 
