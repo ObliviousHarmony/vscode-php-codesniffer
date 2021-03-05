@@ -1,5 +1,6 @@
-import { CancellationError, DiagnosticCollection, TextDocument } from 'vscode';
-import { CodeActionCollection } from '../types';
+import { CancellationError, CodeActionKind, Diagnostic, DiagnosticCollection, TextDocument } from 'vscode';
+import { CodeAction, CodeActionCollection } from '../types';
+import { IgnoreLineCommand } from '../commands/ignore-line-command';
 import { Configuration } from './configuration';
 import { Logger } from './logger';
 import { Request } from '../phpcs-report/request';
@@ -112,8 +113,11 @@ export class DiagnosticUpdater extends WorkerService {
                     return;
                 }
 
-                // Update the document with the information returned by our report.
+                // Update the diagnostics for the document.
                 this.diagnosticCollection.set(document.uri, response.report.diagnostics);
+
+                // Prepare the code actions and update them for the document.
+                response.report.codeActions.push(...this.buildDiagnosticCodeActions(document, response.report.diagnostics));
                 this.codeActionCollection.set(document.uri, response.report.codeActions);
             })
             .catch((e) => {
@@ -130,5 +134,32 @@ export class DiagnosticUpdater extends WorkerService {
 
                 throw e;
             });
+    }
+
+    /**
+     * Builds all of the code actions that are associated with diagnostics, such as ignore actions.
+     *
+     * @param {TextDocument} document The document that the actions are for.
+     * @param {Array.<Diagnostic>} diagnostics The diagnostics for the document.
+     */
+    private buildDiagnosticCodeActions(document: TextDocument, diagnostics: Diagnostic[]): CodeAction[] {
+        const codeActions: CodeAction[] = [];
+
+        for (const diagnostic of diagnostics) {
+            const action = new CodeAction('Ignore ' + diagnostic.code + ' for this line', CodeActionKind.QuickFix);
+            action.diagnostics = [ diagnostic ];
+            action.command = {
+                title: 'Ignore PHP_CodeSniffer',
+                command: IgnoreLineCommand.COMMAND,
+                arguments: [
+                    document,
+                    diagnostic.code,
+                    diagnostic.range.start.line
+                ]
+            };
+            codeActions.push(action);
+        }
+
+        return codeActions;
     }
 }

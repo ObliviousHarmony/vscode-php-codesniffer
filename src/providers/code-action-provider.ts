@@ -1,15 +1,12 @@
 import {
     CancellationToken,
     CodeActionContext,
-    CodeActionKind,
     CodeActionProvider as BaseProvider,
-    Diagnostic,
     ProviderResult,
     Range,
     TextDocument,
 } from 'vscode';
 import { CodeAction, CodeActionCollection } from '../types';
-import { IgnoreLineCommand } from '../commands/ignore-line-command';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 
 /**
@@ -71,7 +68,6 @@ export class CodeActionProvider implements BaseProvider<CodeAction> {
             action.document = document;
 
             filteredActions.push(action);
-            filteredActions.push(...this.getSupplementalActions(document, diagnostic));
         }
 
         return filteredActions;
@@ -92,30 +88,5 @@ export class CodeActionProvider implements BaseProvider<CodeAction> {
         }
 
         return this.codeActionEditResolver.resolve(codeAction, cancellationToken);
-    }
-
-    /**
-     * Fetches all of the supplemental actions that this one has created.
-     *
-     * @param {TextDocument} document The document for the actions.
-     * @param {Diagnostic} diagnostic The diagnostic we're building actions for.
-     */
-    private getSupplementalActions(document: TextDocument, diagnostic: Diagnostic): CodeAction[] {
-        const supplementalActions: CodeAction[] = [];
-
-        const action = new CodeAction('Ignore ' + diagnostic.code + ' for this line', CodeActionKind.QuickFix);
-        action.diagnostics = [ diagnostic ];
-        action.command = {
-            title: 'Ignore PHP_CodeSniffer',
-            command: IgnoreLineCommand.COMMAND,
-            arguments: [
-                document,
-                diagnostic.code,
-                diagnostic.range.start.line
-            ]
-        };
-        supplementalActions.push(action);
-
-        return supplementalActions;
     }
 }
