@@ -31,6 +31,9 @@ class Diagnostic extends VSCodeReport
         foreach ($report['messages'] as $line => $columns) {
             foreach ($columns as $column => $messages) {
                 $stackPtr = $file->getStackPtrForPosition($line, $column);
+                if (!isset($stackPtr)) {
+                    continue;
+                }
                 $token = $file->getToken($stackPtr);
 
                 foreach ($messages as $message) {
