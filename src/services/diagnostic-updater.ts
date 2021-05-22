@@ -14,11 +14,17 @@ import { ReportType, Response } from '../phpcs-report/response';
 import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
+import { LinterStatus } from './linter-status';
 
 /**
  * A class for updating diagnostics and code actions.
  */
 export class DiagnosticUpdater extends WorkerService {
+	/**
+	 * A service for keeping the user updated about the linter's activity.
+	 */
+	private readonly linterStatus: LinterStatus;
+
 	/**
 	 * A collection of all the diagnostics we are responsible for.
 	 */
@@ -35,6 +41,7 @@ export class DiagnosticUpdater extends WorkerService {
 	 * @param {Logger} logger The logger to use.
 	 * @param {Configuration} configuration The configuration object to use.
 	 * @param {WorkerPool} workerPool The worker pool to use.
+	 * @param {LinterStatus} linterStatus The linter status service to use.
 	 * @param {DiagnosticCollection} diagnosticCollection The collection of diagnostics we are responsible for.
 	 * @param {CodeActionCollection} codeActionCollection The collection of code actions that we're responsible for.
 	 */
@@ -42,11 +49,13 @@ export class DiagnosticUpdater extends WorkerService {
 		logger: Logger,
 		configuration: Configuration,
 		workerPool: WorkerPool,
+		linterStatus: LinterStatus,
 		diagnosticCollection: DiagnosticCollection,
 		codeActionCollection: CodeActionCollection
 	) {
 		super(logger, configuration, workerPool);
 
+		this.linterStatus = linterStatus;
 		this.diagnosticCollection = diagnosticCollection;
 		this.codeActionCollection = codeActionCollection;
 	}
@@ -82,6 +91,9 @@ export class DiagnosticUpdater extends WorkerService {
 			return;
 		}
 
+		// Record that we're going to start linting a document.
+		this.linterStatus.start(document.uri);
+
 		this.workerPool
 			.waitForAvailable(
 				'diagnostic:' + document.fileName,
@@ -116,6 +128,9 @@ export class DiagnosticUpdater extends WorkerService {
 			.then((response) => {
 				this.deleteCancellationToken(document);
 
+				// Let the status know we're not linting the document anymore.
+				this.linterStatus.stop(document.uri);
+
 				// When an empty response is received it means that there are no diagnostics for the file.
 				if (!response.report) {
 					this.diagnosticCollection.delete(document.uri);
@@ -146,6 +161,9 @@ export class DiagnosticUpdater extends WorkerService {
 				if (e instanceof CancellationError) {
 					return;
 				}
+
+				// Let the status know we're not linting the document anymore.
+				this.linterStatus.stop(document.uri);
 
 				// We should send PHPCS errors to be logged and presented to the user.
 				if (e instanceof PHPCSError) {
