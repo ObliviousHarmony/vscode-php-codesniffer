@@ -106,8 +106,8 @@ export abstract class WorkerService implements Disposable {
 		}
 
 		// Store the token so that we can cancel if necessary.
-		// @ts-ignore: The definition is wrong; the token source accepts a parent token.
 		const cancellationTokenSource = new CancellationTokenSource(
+			// @ts-ignore: The definition is wrong; the token source accepts a parent token.
 			cancellationToken
 		);
 		this.cancellationTokenSourceMap.set(
