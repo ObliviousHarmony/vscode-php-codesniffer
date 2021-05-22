@@ -137,10 +137,21 @@ export class WorkspaceListener implements Disposable {
      * @param {TextDocument} document The affected document.
      */
     private onOpen(document: TextDocument): void {
+        // We only care about files with schemes we are able to handle.
+        switch (document.uri.scheme) {
+            case 'file':
+            case 'untitled':
+                break;
+
+            default:
+                return;
+        }
+
         // We only care about PHP documents.
         if (document.languageId !== 'php') {
             return;
         }
+
         this.documents.set(document.uri, document);
 
         // Trigger an update so that the document will gather diagnostics.
