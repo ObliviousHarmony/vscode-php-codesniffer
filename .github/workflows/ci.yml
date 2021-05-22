@@ -3,11 +3,11 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - trunk
       - release/*
   pull_request:
     branches:
-      - main
+      - trunk
       - release/*
 
 
@@ -20,7 +20,9 @@ jobs:
     - uses: php-actions/composer@v5
 
     - name: Install Modules
-      run: npm install
+      run: |
+        nvm install
+        npm install
 
     - name: Lint JavaScript
       run: npm run lint
