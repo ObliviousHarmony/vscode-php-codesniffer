@@ -4,10 +4,10 @@ import { CodeAction as BaseCodeAction, TextDocument, Uri } from 'vscode';
  * A custom code action class that adds a Uri for associating it with a document.
  */
 export class CodeAction extends BaseCodeAction {
-    /**
-     * The document associated with the code action.
-     */
-    public document?: TextDocument;
+	/**
+	 * The document associated with the code action.
+	 */
+	public document?: TextDocument;
 }
 
 /**
