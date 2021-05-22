@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2021-05-21
+### Added
+- Status bar indicator when PHPCS is generating diagnosts.
+
+### Fixed
+- Erroneous PHP output should not break PHPCS report parsing.
+- Diagnostics should not be generated for Source Control git content.
+- PHPCS reports throwing exceptions when parsing fails internally.
+
 ## [1.1.0] - 2021-03-04
 ### Added
 - Ignore diagnostics for files using `phpCodeSniffer.ignorePatterns` option.
