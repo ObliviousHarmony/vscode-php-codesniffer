@@ -27,8 +27,13 @@ class CodeAction extends VSCodeReport
         // Get information about the problem we want to fix.
         $problemSource = $data->code;
 
-        // Find the token that we're trying to fix.
+        // Find the token in the file using the VS Code position.
         $stackPtr = $file->getStackPtrForPosition($data->line, $data->character, true);
+        if (!isset($stackPtr)) {
+            return false;
+        }
+
+        // Find the token that we're trying to fix.
         $token = $file->getToken($stackPtr);
 
         // Find the problem message we're trying to fix.

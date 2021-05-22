@@ -228,6 +228,9 @@ export class Worker {
                 return;
             }
 
+            // Trim everything from the report that isn't JSON.
+            pendingReport = pendingReport.replace(/^[^{]+(.+}).*/, '$1');
+
             // Resolve the promise to complete the report.
             resolve(Response.fromRaw(request.type, pendingReport));
         });

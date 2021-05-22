@@ -35,9 +35,9 @@ export class WorkspaceListener implements Disposable {
     private readonly documentFormatter: DocumentFormatter;
 
     /**
-     * A map containing all of the documents we're currently tracking.
+     * A set containing the Uris of all the documents that we're tracking.
      */
-    private readonly documents: Map<Uri, TextDocument>;
+    private readonly trackedDocuments: Set<Uri>;
 
     /**
      * A map for applying a debounce to document updates.
@@ -67,7 +67,7 @@ export class WorkspaceListener implements Disposable {
         this.diagnosticUpdater = diagnosticUpdater;
         this.codeActionEditResolver = codeActionEditResolver;
         this.documentFormatter = documentFormatter;
-        this.documents = new Map();
+        this.trackedDocuments = new Set();
         this.updateDebounceMap = new Map();
         this.subscriptions = [];
     }
@@ -114,7 +114,7 @@ export class WorkspaceListener implements Disposable {
                 return;
             }
 
-            this.updateAllDocuments();
+            this.updateAllDocuments(workspace);
         }));
 
         // Make sure that the current editor is considered open.
@@ -137,11 +137,23 @@ export class WorkspaceListener implements Disposable {
      * @param {TextDocument} document The affected document.
      */
     private onOpen(document: TextDocument): void {
+        // We only care about files with schemes we are able to handle.
+        switch (document.uri.scheme) {
+            case 'file':
+            case 'untitled':
+                break;
+
+            default:
+                return;
+        }
+
         // We only care about PHP documents.
         if (document.languageId !== 'php') {
             return;
         }
-        this.documents.set(document.uri, document);
+
+        // Mark that we should be tracking the document.
+        this.trackedDocuments.add(document.uri);
 
         // Trigger an update so that the document will gather diagnostics.
         this.onUpdate(document);
@@ -153,11 +165,10 @@ export class WorkspaceListener implements Disposable {
      * @param {TextDocument} document The affected document.
      */
     private onClose(document: TextDocument): void {
-        // If we're tracking the document we should clean up after it.
-        if (!this.documents.has(document.uri)) {
+        // Only clean up after documents that we're tracking.
+        if (!this.trackedDocuments.delete(document.uri)) {
             return;
         }
-        this.documents.delete(document.uri);
 
         // Let all of our services know the document is gone.
         this.diagnosticUpdater.onDocumentClosed(document);
@@ -175,10 +186,9 @@ export class WorkspaceListener implements Disposable {
      */
     private onUpdate(document: TextDocument): void {
         // Don't update documents that we aren't tracking.
-        if (!this.documents.has(document.uri)) {
+        if (!this.trackedDocuments.has(document.uri)) {
             return;
         }
-        this.documents.set(document.uri, document);
 
         // Apply a debounce so that we don't perform the update too quickly.
         let debounce = this.updateDebounceMap.get(document.uri);
@@ -213,37 +223,49 @@ export class WorkspaceListener implements Disposable {
 
         // Since the cache may be invalid now we should update all of the documents
         // that might be affected by this change.
-        for (const kvp of this.documents) {
+        for (const document of workspace.textDocuments) {
+            // Only update documents we're tracking.
+            if (!this.trackedDocuments.has(document.uri)) {
+                continue;
+            }
+
             // Only affect documents in the workspace folder.
-            const documentString = kvp[0].toString();
+            const documentString = document.uri.toString();
             if (!documentString.startsWith(folderString)) {
                 continue;
             }
 
             // Clear the cache since its executable may have been affected.
-            this.configuration.clearCache(kvp[1]);
+            this.configuration.clearCache(document);
 
             // Don't allow for overlapping requests.
-            this.diagnosticUpdater.cancel(kvp[1]);
+            this.diagnosticUpdater.cancel(document);
 
             // Update the diagnostics for the document.
-            this.diagnosticUpdater.update(kvp[1]);
+            this.diagnosticUpdater.update(document);
         }
     }
 
     /**
      * Generates new data for all of the documents that we're tracking.
+     *
+     * @param {workspace} workspace The workspace to update all of the documents in.
      */
-    private updateAllDocuments(): void {
+    private updateAllDocuments(workspace: typeof vsCodeWorkspace): void {
         // Clear the cache so that configuration updates will be pulled in.
         this.configuration.clearCache();
 
-        for (const kvp of this.documents) {
+        for (const document of workspace.textDocuments) {
+            // Only update documents that we're tracking.
+            if (!this.trackedDocuments.has(document.uri)) {
+                continue;
+            }
+
             // Don't allow for overlapping requests.
-            this.diagnosticUpdater.cancel(kvp[1]);
+            this.diagnosticUpdater.cancel(document);
 
             // Update the diagnostics for the document.
-            this.diagnosticUpdater.update(kvp[1]);
+            this.diagnosticUpdater.update(document);
         }
     }
 }

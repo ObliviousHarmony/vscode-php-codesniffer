@@ -26,11 +26,19 @@ class Format extends VSCodeReport
         // Apply the formatting restriction if one is given.
         $startToken = null;
         if (isset($data->start)) {
+            // Find the token in the file using the VS Code position.
             $startToken = $file->getStackPtrForPosition($data->start->line, $data->start->character, true);
+            if (!isset($startToken)) {
+                return false;
+            }
         }
         $endToken = null;
         if (isset($data->end)) {
+            // Find the token in the file using the VS Code position.
             $endToken = $file->getStackPtrForPosition($data->end->line, $data->end->character, true);
+            if (!isset($endToken)) {
+                return false;
+            }
         }
 
         // Format the given range.
