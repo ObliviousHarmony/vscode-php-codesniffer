@@ -20,9 +20,7 @@ jobs:
     - uses: php-actions/composer@v5
 
     - name: Install Modules
-      run: |
-        nvm install
-        npm install
+      run: npm install
 
     - name: Lint JavaScript
       run: npm run lint
