@@ -19,6 +19,7 @@ import { mocked } from 'ts-jest/utils';
 import { Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
+import { LinterStatus } from '../linter-status';
 
 jest.mock('../../phpcs-report/report-files', () => {
 	return {
@@ -34,7 +35,8 @@ jest.mock('../../phpcs-report/report-files', () => {
 		},
 	};
 });
-jest.mock('..//logger');
+jest.mock('../logger');
+jest.mock('../linter-status');
 jest.mock('../configuration');
 jest.mock('../../phpcs-report/worker');
 jest.mock('../../phpcs-report/worker-pool');
@@ -56,6 +58,7 @@ describe('DiagnosticUpdater', () => {
 	let mockLogger: Logger;
 	let mockConfiguration: Configuration;
 	let mockWorkerPool: WorkerPool;
+	let mockLinterStatus: LinterStatus;
 	let mockDiagnosticCollection: DiagnosticCollection;
 	let mockCodeActionCollection: CodeActionCollection;
 	let diagnosticUpdater: DiagnosticUpdater;
@@ -64,6 +67,7 @@ describe('DiagnosticUpdater', () => {
 		mockLogger = new Logger(window);
 		mockConfiguration = new Configuration(workspace);
 		mockWorkerPool = new WorkerPool(1);
+		mockLinterStatus = new LinterStatus(window);
 		mockDiagnosticCollection = new MockDiagnosticCollection();
 		mockCodeActionCollection = new CodeActionCollection();
 
@@ -71,6 +75,7 @@ describe('DiagnosticUpdater', () => {
 			mockLogger,
 			mockConfiguration,
 			mockWorkerPool,
+			mockLinterStatus,
 			mockDiagnosticCollection,
 			mockCodeActionCollection
 		);
