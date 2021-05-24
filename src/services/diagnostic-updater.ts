@@ -94,6 +94,11 @@ export class DiagnosticUpdater extends WorkerService {
 		// Record that we're going to start linting a document.
 		this.linterStatus.start(document.uri);
 
+		// Make sure we stop linting the document the update is cancelled.
+		cancellationToken.onCancellationRequested(() => {
+			this.linterStatus.stop(document.uri);
+		});
+
 		this.workerPool
 			.waitForAvailable(
 				'diagnostic:' + document.fileName,
