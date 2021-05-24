@@ -3,11 +3,11 @@ import {
 	CancellationTokenSource,
 	Disposable,
 	TextDocument,
-	Uri,
 } from 'vscode';
 import { Logger } from './logger';
 import { Configuration } from './configuration';
 import { WorkerPool } from '../phpcs-report/worker-pool';
+import { UriMap } from '../common/uri-map';
 
 /**
  * A base class for all of the updates that interact with PHPCS.
@@ -31,10 +31,7 @@ export abstract class WorkerService implements Disposable {
 	/**
 	 * A map containing all of the cancellation token sources to prevent overlapping execution.
 	 */
-	private readonly cancellationTokenSourceMap: Map<
-		Uri,
-		CancellationTokenSource
-	>;
+	private readonly cancellationTokenSourceMap: UriMap<CancellationTokenSource>;
 
 	/**
 	 * Constructor.
@@ -51,7 +48,7 @@ export abstract class WorkerService implements Disposable {
 		this.logger = logger;
 		this.configuration = configuration;
 		this.workerPool = workerPool;
-		this.cancellationTokenSourceMap = new Map();
+		this.cancellationTokenSourceMap = new UriMap();
 	}
 
 	/**

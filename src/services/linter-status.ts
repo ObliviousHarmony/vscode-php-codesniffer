@@ -5,6 +5,7 @@ import {
 	Uri,
 	window as vsCodeWindow,
 } from 'vscode';
+import { UriSet } from '../common/uri-set';
 
 /**
  * A class for managing the linter's status.
@@ -18,14 +19,14 @@ export class LinterStatus implements Disposable {
 	/**
 	 * The documents that are actively being linted.
 	 */
-	private readonly activeDocuments: Set<Uri>;
+	private readonly activeDocuments: UriSet;
 
 	/**
 	 * Constructor.
 	 */
 	public constructor(window: typeof vsCodeWindow) {
 		this.statusBar = window.createStatusBarItem(StatusBarAlignment.Left);
-		this.activeDocuments = new Set();
+		this.activeDocuments = new UriSet();
 	}
 
 	/**

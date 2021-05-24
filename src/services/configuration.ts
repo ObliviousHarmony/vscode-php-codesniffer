@@ -5,6 +5,7 @@ import {
 	Uri,
 	workspace as vsCodeWorkspace,
 } from 'vscode';
+import { UriMap } from '../common/uri-map';
 
 /**
  * An enum describing the values in the `phpcsCodeSniffer.standard` configuration.
@@ -83,7 +84,7 @@ export class Configuration {
 	/**
 	 * A cache containing all of the configurations we've loaded.
 	 */
-	private readonly cache: Map<Uri, DocumentConfiguration>;
+	private readonly cache: UriMap<DocumentConfiguration>;
 
 	/**
 	 * The decoder for parsing file content into strings for consumption.
@@ -97,7 +98,7 @@ export class Configuration {
 	 */
 	public constructor(workspace: typeof vsCodeWorkspace) {
 		this.workspace = workspace;
-		this.cache = new Map();
+		this.cache = new UriMap();
 		this.textDecoder = new TextDecoder();
 	}
 

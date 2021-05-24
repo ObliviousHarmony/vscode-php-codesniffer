@@ -1,13 +1,23 @@
 const Uri: any = jest.fn().mockImplementation(() => {
-	return {
+	const created = {
 		scheme: 'file',
 		authority: '',
 		path: 'test/file/path.php',
 		query: '',
 		fragment: '',
 		fsPath: 'test/file/path.php',
-		toString: jest.fn(),
+		toString: (): string => {
+			let str = created.scheme + '://' + created.path;
+			if (created.query) {
+				str += '?' + created.query;
+			}
+			if (created.fragment) {
+				str += '#' + created.fragment;
+			}
+			return str;
+		},
 	};
+	return created;
 });
 Uri.joinPath = jest.fn();
 
