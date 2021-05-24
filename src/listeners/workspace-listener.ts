@@ -9,6 +9,8 @@ import { Configuration } from '../services/configuration';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 import { DiagnosticUpdater } from '../services/diagnostic-updater';
 import { DocumentFormatter } from '../services/document-formatter';
+import { UriMap } from '../common/uri-map';
+import { UriSet } from '../common/uri-set';
 
 /**
  * A class for listening to the workspace and responding to events that occur.
@@ -37,12 +39,12 @@ export class WorkspaceListener implements Disposable {
 	/**
 	 * A set containing the Uris of all the documents that we're tracking.
 	 */
-	private readonly trackedDocuments: Set<Uri>;
+	private readonly trackedDocuments: UriSet;
 
 	/**
 	 * A map for applying a debounce to document updates.
 	 */
-	private readonly updateDebounceMap: Map<Uri, NodeJS.Timeout>;
+	private readonly updateDebounceMap: UriMap<NodeJS.Timeout>;
 
 	/**
 	 * The subscriptions we have to VS Code events.
@@ -67,8 +69,8 @@ export class WorkspaceListener implements Disposable {
 		this.diagnosticUpdater = diagnosticUpdater;
 		this.codeActionEditResolver = codeActionEditResolver;
 		this.documentFormatter = documentFormatter;
-		this.trackedDocuments = new Set();
-		this.updateDebounceMap = new Map();
+		this.trackedDocuments = new UriSet();
+		this.updateDebounceMap = new UriMap();
 		this.subscriptions = [];
 	}
 
