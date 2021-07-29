@@ -89,7 +89,13 @@
           "scope": "window"
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "phpCodeSniffer.cancelProcessing",
+        "title": "PHP_CodeSniffer: Cancel Processing"
+      }
+    ]
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",

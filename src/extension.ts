@@ -49,7 +49,11 @@ export function activate(context: ExtensionContext): void {
 		configuration,
 		workerPool
 	);
-	const commandProvider = new CommandProvider();
+	const commandProvider = new CommandProvider(
+		diagnosticUpdater,
+		codeActionEditResolver,
+		documentFormatter
+	);
 	const workspaceListener = new WorkspaceListener(
 		configuration,
 		diagnosticUpdater,
