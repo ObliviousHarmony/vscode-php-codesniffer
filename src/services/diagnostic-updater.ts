@@ -99,36 +99,39 @@ export class DiagnosticUpdater extends WorkerService {
 			this.linterStatus.stop(document.uri);
 		});
 
-		this.workerPool
-			.waitForAvailable(
-				'diagnostic:' + document.fileName,
-				cancellationToken
-			)
-			.then(async (worker) => {
-				const config = await this.configuration.get(document);
-
+		this.configuration
+			.get(document, cancellationToken)
+			.then((configuration) => {
 				// Check the file's path against our ignore patterns so that we don't process
 				// diagnostics for files that the user is not interested in receiving them for.
-				for (const pattern of config.ignorePatterns) {
+				for (const pattern of configuration.ignorePatterns) {
 					if (pattern.test(document.uri.fsPath)) {
 						return Response.empty(ReportType.Diagnostic);
 					}
 				}
 
-				// Use the worker to make a request for a diagnostic report.
-				const request: Request<ReportType.Diagnostic> = {
-					type: ReportType.Diagnostic,
-					documentPath: document.uri.fsPath,
-					documentContent: document.getText(),
-					options: {
-						workingDirectory: config.workingDirectory,
-						executable: config.executable,
-						standard: config.standard,
-					},
-					data: null,
-				};
+				return this.workerPool
+					.waitForAvailable(
+						'diagnostic:' + document.fileName,
+						cancellationToken
+					)
+					.then(async (worker) => {
+						// Use the worker to make a request for a diagnostic report.
+						const request: Request<ReportType.Diagnostic> = {
+							type: ReportType.Diagnostic,
+							documentPath: document.uri.fsPath,
+							documentContent: document.getText(),
+							options: {
+								workingDirectory:
+									configuration.workingDirectory,
+								executable: configuration.executable,
+								standard: configuration.standard,
+							},
+							data: null,
+						};
 
-				return worker.execute(request, cancellationToken);
+						return worker.execute(request, cancellationToken);
+					});
 			})
 			.then((response) => {
 				this.deleteCancellationToken(document);
@@ -162,13 +165,13 @@ export class DiagnosticUpdater extends WorkerService {
 				);
 			})
 			.catch((e) => {
+				// Let the status know we're not linting the document anymore.
+				this.linterStatus.stop(document.uri);
+
 				// Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
 				if (e instanceof CancellationError) {
 					return;
 				}
-
-				// Let the status know we're not linting the document anymore.
-				this.linterStatus.stop(document.uri);
 
 				// We should send PHPCS errors to be logged and presented to the user.
 				if (e instanceof PHPCSError) {

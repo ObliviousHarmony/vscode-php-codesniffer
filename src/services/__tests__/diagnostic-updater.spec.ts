@@ -137,36 +137,18 @@ describe('DiagnosticUpdater', () => {
 		diagnosticUpdater.update(document);
 	});
 
-	it('should respect ignore patterns', async (done) => {
+	it('should respect ignore patterns', () => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
-		const mockWorker = new Worker();
-		mocked(mockWorkerPool).waitForAvailable.mockImplementation(
-			(workerKey) => {
-				expect(workerKey).toBe('diagnostic:test-document');
-
-				// Wait for the updater to process the result before completing the test.
-				setTimeout(() => {
-					expect(
-						mockDiagnosticCollection.delete
-					).toHaveBeenCalledWith(document.uri);
-					expect(
-						mockCodeActionCollection.delete
-					).toHaveBeenCalledWith(document.uri);
-					done();
-				}, 5);
-
-				return Promise.resolve(mockWorker);
-			}
-		);
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			ignorePatterns: [new RegExp('.*/file/.*')],
+			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
 
-		diagnosticUpdater.update(document);
+		return diagnosticUpdater.update(document);
 	});
 });

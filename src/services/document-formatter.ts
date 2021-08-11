@@ -1,6 +1,13 @@
-import { CancellationToken, Range, TextDocument, TextEdit } from 'vscode';
+import {
+	CancellationError,
+	CancellationToken,
+	Range,
+	TextDocument,
+	TextEdit,
+} from 'vscode';
 import { FormatRequest, Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
+import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerService } from './worker-service';
 
 /**
@@ -27,11 +34,17 @@ export class DocumentFormatter extends WorkerService {
 			return Promise.resolve([]);
 		}
 
-		// Use a consistent key to prevent overlap when resolving the code action.
-		const workerKey = ['format', document.fileName].join(':');
+		return this.configuration
+			.get(document, cancellationToken)
+			.then(() => {
+				// Use a consistent key to prevent overlap when resolving the code action.
+				const workerKey = ['format', document.fileName].join(':');
 
-		return this.workerPool
-			.waitForAvailable(workerKey, cancellationToken)
+				return this.workerPool.waitForAvailable(
+					workerKey,
+					cancellationToken
+				);
+			})
 			.then(async (worker) => {
 				const config = await this.configuration.get(document);
 
@@ -78,6 +91,20 @@ export class DocumentFormatter extends WorkerService {
 				}
 
 				return edits;
+			})
+			.catch((e) => {
+				// Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
+				if (e instanceof CancellationError) {
+					return [];
+				}
+
+				// We should send PHPCS errors to be logged and presented to the user.
+				if (e instanceof PHPCSError) {
+					this.logger.error(e);
+					return [];
+				}
+
+				throw e;
 			});
 	}
 }
