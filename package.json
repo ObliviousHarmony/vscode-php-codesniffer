@@ -56,6 +56,20 @@
           },
           "scope": "window"
         },
+        "phpCodeSniffer.lintAction": {
+          "type": "string",
+          "description": "The editor action that will cause the linter to run.",
+          "default": "Change",
+          "enum": [
+            "Change",
+            "Save"
+          ],
+          "enumDescriptions": [
+            "Lints whenever a document is changed.",
+            "Lints when a document is saved."
+          ],
+          "scope": "resource"
+        },
         "phpCodeSniffer.standard": {
           "type": "string",
           "description": "The coding standard that should be used by PHPCS.",

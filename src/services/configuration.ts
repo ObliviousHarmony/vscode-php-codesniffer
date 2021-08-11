@@ -24,6 +24,17 @@ export enum StandardType {
 }
 
 /**
+ * An enum describing the values in the `phpCodeSniffer.lintAction` configuration.
+ */
+export enum LintAction {
+	Change = 'Change',
+	Save = 'Save',
+
+	// These are limited to code, and aren't part of the configuration options.
+	Force = 'Force',
+}
+
+/**
  * An interface describing the path to an executable.
  */
 interface ExecutablePath {
@@ -46,6 +57,7 @@ interface ParamsFromConfiguration {
 	autoExecutable: boolean;
 	executable: string;
 	ignorePatterns: RegExp[];
+	lintAction: LintAction;
 	standard: string;
 }
 
@@ -67,6 +79,11 @@ export interface DocumentConfiguration {
 	 * The ignore patterns we should use when executing reports/
 	 */
 	ignorePatterns: RegExp[];
+
+	/**
+	 * The editor action that should trigger the linter.
+	 */
+	lintAction: LintAction;
 
 	/**
 	 * The standard we should use when executing reports.
@@ -132,6 +149,7 @@ export class Configuration {
 			workingDirectory: fromFilesystem.workingDirectory,
 			executable: fromFilesystem.executable ?? fromConfig.executable,
 			ignorePatterns: fromConfig.ignorePatterns,
+			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
 		};
 		this.cache.set(document.uri, config);
@@ -227,6 +245,13 @@ export class Configuration {
 		}
 		const ignorePatterns = rawPatterns.map((v) => new RegExp(v));
 
+		const lintAction = config.get<LintAction>('lintAction');
+		if (lintAction === undefined) {
+			throw new Error(
+				'The extension has an invalid `lintAction` configuration.'
+			);
+		}
+
 		let standard = config.get<string>('standard');
 		if (standard === StandardType.Custom) {
 			standard = config.get<string>('standardCustom');
@@ -235,7 +260,13 @@ export class Configuration {
 			standard = StandardType.Disabled;
 		}
 
-		return { autoExecutable, executable, ignorePatterns, standard };
+		return {
+			autoExecutable,
+			executable,
+			ignorePatterns,
+			lintAction,
+			standard,
+		};
 	}
 
 	/**

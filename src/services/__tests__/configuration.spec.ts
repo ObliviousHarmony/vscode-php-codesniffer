@@ -12,7 +12,7 @@ import {
 } from '../../__mocks__/vscode';
 import { TextEncoder } from 'util';
 import { mocked } from 'ts-jest/utils';
-import { Configuration, StandardType } from '../configuration';
+import { Configuration, LintAction, StandardType } from '../configuration';
 
 describe('Configuration', () => {
 	let mockDocument: TextDocument;
@@ -71,6 +71,8 @@ describe('Configuration', () => {
 					return 'test.exec';
 				case 'ignorePatterns':
 					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
 			}
@@ -153,6 +155,8 @@ describe('Configuration', () => {
 					return 'test.exec';
 				case 'ignorePatterns':
 					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
 			}
@@ -237,6 +241,8 @@ describe('Configuration', () => {
 					return 'test.exec';
 				case 'ignorePatterns':
 					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
 			}
