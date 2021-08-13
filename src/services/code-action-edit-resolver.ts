@@ -1,8 +1,9 @@
-import { CancellationToken, WorkspaceEdit } from 'vscode';
+import { CancellationError, CancellationToken, WorkspaceEdit } from 'vscode';
 import { CodeAction } from '../types';
 import { Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
 import { WorkerService } from './worker-service';
+import { PHPCSError } from '../phpcs-report/worker';
 
 /**
  * A class for resolving edits for code actions.
@@ -38,16 +39,23 @@ export class CodeActionEditResolver extends WorkerService {
 		// Use a consistent key to prevent overlap when resolving the code action.
 		const document = codeAction.document;
 		const diagnostic = codeAction.diagnostics[0];
-		const workerKey = [
-			'resolve',
-			codeAction.document.fileName,
-			diagnostic.code as string,
-			diagnostic.range.start.line,
-			diagnostic.range.start.character,
-		].join(':');
 
-		return this.workerPool
-			.waitForAvailable(workerKey, cancellationToken)
+		return this.configuration
+			.get(document, cancellationToken)
+			.then(() => {
+				const workerKey = [
+					'resolve',
+					document.fileName,
+					diagnostic.code as string,
+					diagnostic.range.start.line,
+					diagnostic.range.start.character,
+				].join(':');
+
+				return this.workerPool.waitForAvailable(
+					workerKey,
+					cancellationToken
+				);
+			})
 			.then(async (worker) => {
 				const config = await this.configuration.get(document);
 
@@ -80,6 +88,20 @@ export class CodeActionEditResolver extends WorkerService {
 				}
 
 				return codeAction;
+			})
+			.catch((e) => {
+				// Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
+				if (e instanceof CancellationError) {
+					return codeAction;
+				}
+
+				// We should send PHPCS errors to be logged and presented to the user.
+				if (e instanceof PHPCSError) {
+					this.logger.error(e);
+					return codeAction;
+				}
+
+				throw e;
 			});
 	}
 }

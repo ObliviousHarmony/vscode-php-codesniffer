@@ -7,14 +7,19 @@ import {
 } from 'vscode';
 import { CodeAction, CodeActionCollection } from '../types';
 import { IgnoreLineCommand } from '../commands/ignore-line-command';
-import { Configuration } from './configuration';
+import { Configuration, LintAction } from './configuration';
 import { Logger } from './logger';
 import { Request } from '../phpcs-report/request';
-import { ReportType, Response } from '../phpcs-report/response';
+import { ReportType } from '../phpcs-report/response';
 import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
 import { LinterStatus } from './linter-status';
+
+/**
+ * A custom error type for identifying when an update was prevented.
+ */
+class UpdatePreventedError extends Error {}
 
 /**
  * A class for updating diagnostics and code actions.
@@ -84,8 +89,9 @@ export class DiagnosticUpdater extends WorkerService {
 	 * Updates a document's diagnostics.
 	 *
 	 * @param {TextDocument} document The document to update the diagnostics for.
+	 * @param {LintAction} lintAction The editor action that triggered this update.
 	 */
-	public update(document: TextDocument): void {
+	public update(document: TextDocument, lintAction: LintAction): void {
 		const cancellationToken = this.createCancellationToken(document);
 		if (!cancellationToken) {
 			return;
@@ -99,36 +105,57 @@ export class DiagnosticUpdater extends WorkerService {
 			this.linterStatus.stop(document.uri);
 		});
 
-		this.workerPool
-			.waitForAvailable(
-				'diagnostic:' + document.fileName,
-				cancellationToken
-			)
-			.then(async (worker) => {
-				const config = await this.configuration.get(document);
-
+		this.configuration
+			.get(document, cancellationToken)
+			.then((configuration) => {
 				// Check the file's path against our ignore patterns so that we don't process
 				// diagnostics for files that the user is not interested in receiving them for.
-				for (const pattern of config.ignorePatterns) {
+				for (const pattern of configuration.ignorePatterns) {
 					if (pattern.test(document.uri.fsPath)) {
-						return Response.empty(ReportType.Diagnostic);
+						throw new UpdatePreventedError();
 					}
 				}
 
-				// Use the worker to make a request for a diagnostic report.
-				const request: Request<ReportType.Diagnostic> = {
-					type: ReportType.Diagnostic,
-					documentPath: document.uri.fsPath,
-					documentContent: document.getText(),
-					options: {
-						workingDirectory: config.workingDirectory,
-						executable: config.executable,
-						standard: config.standard,
-					},
-					data: null,
-				};
+				// Allow users to decide when the diagnostics are updated.
+				switch (lintAction) {
+					case LintAction.Change:
+						// Allow users to restrict updates to explicit save actions.
+						if (configuration.lintAction === LintAction.Save) {
+							throw new UpdatePreventedError();
+						}
 
-				return worker.execute(request, cancellationToken);
+						break;
+
+					case LintAction.Save:
+						// When linting on change, we will always have the latest diagnostics, and don't need to update.
+						if (configuration.lintAction === LintAction.Change) {
+							throw new UpdatePreventedError();
+						}
+						break;
+				}
+
+				return this.workerPool
+					.waitForAvailable(
+						'diagnostic:' + document.fileName,
+						cancellationToken
+					)
+					.then(async (worker) => {
+						// Use the worker to make a request for a diagnostic report.
+						const request: Request<ReportType.Diagnostic> = {
+							type: ReportType.Diagnostic,
+							documentPath: document.uri.fsPath,
+							documentContent: document.getText(),
+							options: {
+								workingDirectory:
+									configuration.workingDirectory,
+								executable: configuration.executable,
+								standard: configuration.standard,
+							},
+							data: null,
+						};
+
+						return worker.execute(request, cancellationToken);
+					});
 			})
 			.then((response) => {
 				this.deleteCancellationToken(document);
@@ -169,6 +196,11 @@ export class DiagnosticUpdater extends WorkerService {
 
 				// Let the status know we're not linting the document anymore.
 				this.linterStatus.stop(document.uri);
+
+				// Updates can be prevented in expected ways, so this error is acceptable.
+				if (e instanceof UpdatePreventedError) {
+					return;
+				}
 
 				// We should send PHPCS errors to be logged and presented to the user.
 				if (e instanceof PHPCSError) {

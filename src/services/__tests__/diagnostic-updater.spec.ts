@@ -8,7 +8,11 @@ import {
 	CodeActionKind,
 } from 'vscode';
 import { CodeAction, CodeActionCollection } from '../../types';
-import { Configuration, StandardType } from '../../services/configuration';
+import {
+	Configuration,
+	LintAction,
+	StandardType,
+} from '../../services/configuration';
 import { WorkerPool } from '../../phpcs-report/worker-pool';
 import { DiagnosticUpdater } from '../diagnostic-updater';
 import {
@@ -16,7 +20,7 @@ import {
 	MockTextDocument,
 } from '../../__mocks__/vscode';
 import { mocked } from 'ts-jest/utils';
-import { Worker } from '../../phpcs-report/worker';
+import { PHPCSError, Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
 import { LinterStatus } from '../linter-status';
@@ -96,6 +100,7 @@ describe('DiagnosticUpdater', () => {
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			ignorePatterns: [],
+			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
 		mocked(mockWorker).execute.mockImplementation((request) => {
@@ -124,20 +129,20 @@ describe('DiagnosticUpdater', () => {
 				},
 			};
 
-			// Wait for the updater to process the result before completing the test.
-			setTimeout(() => {
-				expect(mockDiagnosticCollection.set).toHaveBeenCalled();
-				expect(mockCodeActionCollection.set).toHaveBeenCalled();
-				done();
-			}, 5);
-
 			return Promise.resolve(response);
 		});
 
-		diagnosticUpdater.update(document);
+		// Wait for the updater to process the result before completing the test.
+		setTimeout(() => {
+			expect(mockDiagnosticCollection.set).toHaveBeenCalled();
+			expect(mockCodeActionCollection.set).toHaveBeenCalled();
+			done();
+		}, 5);
+
+		diagnosticUpdater.update(document, LintAction.Force);
 	});
 
-	it('should respect ignore patterns', async (done) => {
+	it('should log PHPCS errors', (done) => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
@@ -145,28 +150,65 @@ describe('DiagnosticUpdater', () => {
 		mocked(mockWorkerPool).waitForAvailable.mockImplementation(
 			(workerKey) => {
 				expect(workerKey).toBe('diagnostic:test-document');
-
-				// Wait for the updater to process the result before completing the test.
-				setTimeout(() => {
-					expect(
-						mockDiagnosticCollection.delete
-					).toHaveBeenCalledWith(document.uri);
-					expect(
-						mockCodeActionCollection.delete
-					).toHaveBeenCalledWith(document.uri);
-					done();
-				}, 5);
-
 				return Promise.resolve(mockWorker);
 			}
 		);
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
+			ignorePatterns: [],
+			lintAction: LintAction.Change,
+			standard: StandardType.PSR12,
+		});
+		mocked(mockWorker).execute.mockImplementation((request) => {
+			expect(request).toMatchObject({
+				type: ReportType.Diagnostic,
+				options: {
+					workingDirectory: 'test-dir',
+					executable: 'phpcs-test',
+					standard: StandardType.PSR12,
+				},
+			});
+
+			throw new PHPCSError('Test Failure', 'Test Failure');
+		});
+
+		// Wait for the updater to process the result before completing the test.
+		setTimeout(() => {
+			expect(mockLogger.error).toHaveBeenCalled();
+			done();
+		}, 5);
+
+		diagnosticUpdater.update(document, LintAction.Force);
+	});
+
+	it('should respect ignore patterns', () => {
+		const document = new MockTextDocument();
+		document.fileName = 'test-document';
+
+		mocked(mockConfiguration).get.mockResolvedValue({
+			workingDirectory: 'test-dir',
+			executable: 'phpcs-test',
 			ignorePatterns: [new RegExp('.*/file/.*')],
+			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
 
-		diagnosticUpdater.update(document);
+		return diagnosticUpdater.update(document, LintAction.Force);
+	});
+
+	it('should not update on change when configured to save', () => {
+		const document = new MockTextDocument();
+		document.fileName = 'test-document';
+
+		mocked(mockConfiguration).get.mockResolvedValue({
+			workingDirectory: 'test-dir',
+			executable: 'phpcs-test',
+			ignorePatterns: [],
+			lintAction: LintAction.Save,
+			standard: StandardType.PSR12,
+		});
+
+		return diagnosticUpdater.update(document, LintAction.Change);
 	});
 });

@@ -1,5 +1,7 @@
 import { TextDecoder } from 'util';
 import {
+	CancellationError,
+	CancellationToken,
 	FileSystemError,
 	TextDocument,
 	Uri,
@@ -19,6 +21,17 @@ export enum StandardType {
 	PSR1 = 'PSR1',
 	PSR12 = 'PSR12',
 	Custom = 'Custom',
+}
+
+/**
+ * An enum describing the values in the `phpCodeSniffer.lintAction` configuration.
+ */
+export enum LintAction {
+	Change = 'Change',
+	Save = 'Save',
+
+	// These are limited to code, and aren't part of the configuration options.
+	Force = 'Force',
 }
 
 /**
@@ -44,6 +57,7 @@ interface ParamsFromConfiguration {
 	autoExecutable: boolean;
 	executable: string;
 	ignorePatterns: RegExp[];
+	lintAction: LintAction;
 	standard: string;
 }
 
@@ -65,6 +79,11 @@ export interface DocumentConfiguration {
 	 * The ignore patterns we should use when executing reports/
 	 */
 	ignorePatterns: RegExp[];
+
+	/**
+	 * The editor action that should trigger the linter.
+	 */
+	lintAction: LintAction;
 
 	/**
 	 * The standard we should use when executing reports.
@@ -106,8 +125,12 @@ export class Configuration {
 	 * Fetches the configuration for the given document.
 	 *
 	 * @param {TextDocument} document The document we want to fetch the config for.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
-	public async get(document: TextDocument): Promise<DocumentConfiguration> {
+	public async get(
+		document: TextDocument,
+		cancellationToken?: CancellationToken
+	): Promise<DocumentConfiguration> {
 		let config = this.cache.get(document.uri);
 		if (config) {
 			return config;
@@ -117,7 +140,8 @@ export class Configuration {
 		const fromConfig = this.readConfiguration(document);
 		const fromFilesystem = await this.readFilesystem(
 			document,
-			fromConfig.autoExecutable
+			fromConfig.autoExecutable,
+			cancellationToken
 		);
 
 		// Build and cache the document configuration to save time later.
@@ -125,6 +149,7 @@ export class Configuration {
 			workingDirectory: fromFilesystem.workingDirectory,
 			executable: fromFilesystem.executable ?? fromConfig.executable,
 			ignorePatterns: fromConfig.ignorePatterns,
+			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
 		};
 		this.cache.set(document.uri, config);
@@ -151,10 +176,12 @@ export class Configuration {
 	 *
 	 * @param {TextDocument} document The document to read.
 	 * @param {boolean} findExecutable Indicates whether or not we should perform an executable search.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
 	private async readFilesystem(
 		document: TextDocument,
-		findExecutable: boolean
+		findExecutable: boolean,
+		cancellationToken?: CancellationToken
 	): Promise<ParamsFromFilesystem> {
 		// The workspace folder for the document is our default working directory.
 		const workspaceFolder = this.getWorkspaceFolder(document);
@@ -167,7 +194,11 @@ export class Configuration {
 		// When an executable is requested we should attempt to populate the params with one.
 		if (findExecutable) {
 			const executable = findExecutable
-				? await this.findExecutable(document.uri, workspaceFolder)
+				? await this.findExecutable(
+						document.uri,
+						workspaceFolder,
+						cancellationToken
+				  )
 				: null;
 			if (executable) {
 				fsParams.workingDirectory = executable.workingDirectory;
@@ -214,6 +245,13 @@ export class Configuration {
 		}
 		const ignorePatterns = rawPatterns.map((v) => new RegExp(v));
 
+		const lintAction = config.get<LintAction>('lintAction');
+		if (lintAction === undefined) {
+			throw new Error(
+				'The extension has an invalid `lintAction` configuration.'
+			);
+		}
+
 		let standard = config.get<string>('standard');
 		if (standard === StandardType.Custom) {
 			standard = config.get<string>('standardCustom');
@@ -222,7 +260,13 @@ export class Configuration {
 			standard = StandardType.Disabled;
 		}
 
-		return { autoExecutable, executable, ignorePatterns, standard };
+		return {
+			autoExecutable,
+			executable,
+			ignorePatterns,
+			lintAction,
+			standard,
+		};
 	}
 
 	/**
@@ -254,10 +298,12 @@ export class Configuration {
 	 *
 	 * @param {Uri} documentUri The URI of the document to find an executable for.
 	 * @param {Uri} workspaceFolder The URI of the workspace folder for the document.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
 	private async findExecutable(
 		documentUri: Uri,
-		workspaceFolder: Uri
+		workspaceFolder: Uri,
+		cancellationToken?: CancellationToken
 	): Promise<ExecutablePath | null> {
 		// Where we start the traversal will depend on the scheme of the document.
 		let directory: Uri;
@@ -280,6 +326,11 @@ export class Configuration {
 		// We're going to traverse from the file's directory to the workspace
 		// folder looking for an executable that can be used in the worker.
 		while (directory.path !== '/') {
+			// When the request is cancelled, we don't want to keep looking.
+			if (cancellationToken?.isCancellationRequested) {
+				throw new CancellationError();
+			}
+
 			const found = await this.findExecutableInDirectory(directory);
 			if (found) {
 				return found;

@@ -5,7 +5,7 @@ import {
 	window as vsCodeWindow,
 	workspace as vsCodeWorkspace,
 } from 'vscode';
-import { Configuration } from '../services/configuration';
+import { Configuration, LintAction } from '../services/configuration';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 import { DiagnosticUpdater } from '../services/diagnostic-updater';
 import { DocumentFormatter } from '../services/document-formatter';
@@ -114,7 +114,14 @@ export class WorkspaceListener implements Disposable {
 					return;
 				}
 
-				this.onUpdate(e.document);
+				this.onUpdate(e.document, LintAction.Change);
+			})
+		);
+
+		// When the text document is saved we should update the diagnostics.
+		this.subscriptions.push(
+			workspace.onDidSaveTextDocument((e) => {
+				this.onUpdate(e, LintAction.Save);
 			})
 		);
 
@@ -174,7 +181,7 @@ export class WorkspaceListener implements Disposable {
 		this.trackedDocuments.add(document.uri);
 
 		// Trigger an update so that the document will gather diagnostics.
-		this.onUpdate(document);
+		this.onUpdate(document, LintAction.Force);
 	}
 
 	/**
@@ -201,8 +208,9 @@ export class WorkspaceListener implements Disposable {
 	 * A callback for documents being changed.
 	 *
 	 * @param {TextDocument} document The affected document.
+	 * @param {LintAction} lintAction The editor action triggering the linting.
 	 */
-	private onUpdate(document: TextDocument): void {
+	private onUpdate(document: TextDocument, lintAction: LintAction): void {
 		// Don't update documents that we aren't tracking.
 		if (!this.trackedDocuments.has(document.uri)) {
 			return;
@@ -220,8 +228,8 @@ export class WorkspaceListener implements Disposable {
 			this.diagnosticUpdater.cancel(document);
 
 			// Update the diagnostics for the document.
-			this.diagnosticUpdater.update(document);
-		}, 100);
+			this.diagnosticUpdater.update(document, lintAction);
+		}, 200);
 		this.updateDebounceMap.set(document.uri, debounce);
 	}
 
@@ -263,7 +271,7 @@ export class WorkspaceListener implements Disposable {
 			this.diagnosticUpdater.cancel(document);
 
 			// Update the diagnostics for the document.
-			this.diagnosticUpdater.update(document);
+			this.diagnosticUpdater.update(document, LintAction.Force);
 		}
 	}
 
@@ -286,7 +294,7 @@ export class WorkspaceListener implements Disposable {
 			this.diagnosticUpdater.cancel(document);
 
 			// Update the diagnostics for the document.
-			this.diagnosticUpdater.update(document);
+			this.diagnosticUpdater.update(document, LintAction.Force);
 		}
 	}
 }

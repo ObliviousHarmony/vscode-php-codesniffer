@@ -3,11 +3,16 @@ import {
 	workspace,
 	Uri as vsCodeUri,
 	FileSystemError,
+	CancellationError,
 } from 'vscode';
-import { MockTextDocument, Uri } from '../../__mocks__/vscode';
+import {
+	MockCancellationToken,
+	MockTextDocument,
+	Uri,
+} from '../../__mocks__/vscode';
 import { TextEncoder } from 'util';
 import { mocked } from 'ts-jest/utils';
-import { Configuration, StandardType } from '../configuration';
+import { Configuration, LintAction, StandardType } from '../configuration';
 
 describe('Configuration', () => {
 	let mockDocument: TextDocument;
@@ -66,6 +71,8 @@ describe('Configuration', () => {
 					return 'test.exec';
 				case 'ignorePatterns':
 					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
 			}
@@ -148,6 +155,8 @@ describe('Configuration', () => {
 					return 'test.exec';
 				case 'ignorePatterns':
 					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
 			}
@@ -175,5 +184,79 @@ describe('Configuration', () => {
 
 		expect(workspace.getConfiguration).toHaveBeenCalledTimes(1);
 		expect(cached).toMatchObject(result);
+	});
+
+	it('should support cancellation', () => {
+		const cancellationToken = new MockCancellationToken();
+
+		const mockConfiguration = { get: jest.fn() };
+		mocked(workspace).getConfiguration.mockReturnValue(
+			mockConfiguration as never
+		);
+
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test';
+		workspaceUri.fsPath = 'test';
+		mocked(workspace).getWorkspaceFolder.mockReturnValue({
+			uri: workspaceUri,
+		} as never);
+
+		// We will traverse from the file directory up.
+		mocked(workspace.fs.readFile).mockImplementation((uri) => {
+			switch (uri.path) {
+				case 'test/file/composer.json':
+					return Promise.reject(new FileSystemError(uri));
+				case 'test/composer.json': {
+					const json = JSON.stringify({
+						config: {
+							'vendor-dir': 'newvendor',
+						},
+					});
+					const encoder = new TextEncoder();
+					return Promise.resolve(encoder.encode(json));
+				}
+			}
+
+			throw new Error('Invalid path: ' + uri.path);
+		});
+
+		mocked(workspace.fs.stat).mockImplementation((uri) => {
+			switch (uri.path) {
+				case 'test/newvendor/bin/phpcs': {
+					const ret = new Uri();
+					ret.path = 'test';
+					ret.fsPath = 'test';
+					return Promise.resolve(ret);
+				}
+			}
+
+			throw new Error('Invalid path: ' + uri.path);
+		});
+
+		mockConfiguration.get.mockImplementation((key) => {
+			switch (key) {
+				case 'autoExecutable':
+					return true;
+				case 'executable':
+					return 'test.exec';
+				case 'ignorePatterns':
+					return ['test'];
+				case 'lintAction':
+					return LintAction.Change;
+				case 'standard':
+					return StandardType.Disabled;
+			}
+
+			fail(
+				'An unexpected configuration key of ' + key + ' was received.'
+			);
+		});
+
+		const promise = configuration.get(mockDocument, cancellationToken);
+
+		// Mock a cancellation so that resolution will reject.
+		cancellationToken.mockCancel();
+
+		return expect(promise).rejects.toMatchObject(new CancellationError());
 	});
 });
