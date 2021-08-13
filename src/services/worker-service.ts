@@ -78,6 +78,17 @@ export abstract class WorkerService implements Disposable {
 	}
 
 	/**
+	 * Cancels in-progress updates for all documents.
+	 */
+	public cancelAll(): void {
+		for (const kvp of this.cancellationTokenSourceMap) {
+			kvp[1].cancel();
+			kvp[1].dispose();
+		}
+		this.cancellationTokenSourceMap.clear();
+	}
+
+	/**
 	 * A handler to be called when a document is closed to clean up after it.
 	 *
 	 * @param {TextDocument} document The document that was closed.

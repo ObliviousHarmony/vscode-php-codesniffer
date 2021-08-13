@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Linter's execution action can be set by the `phpCodeSniffer.lintAction` option.
+- Command `phpCodeSniffer.cancelProcessing` to cancel all active processing.
 
 ## [1.3.0] - 2021-05-24
 ### Fixed
