@@ -7,9 +7,9 @@
 !.vscode/tasks.json
 
 # Build Artifacts
-out/
-dist/
 *.vsix
+extension.js
+extension.js.map
 
 # Dependencies
 node_modules/

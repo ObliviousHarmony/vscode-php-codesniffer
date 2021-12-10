@@ -2,11 +2,10 @@
 .github/
 node_modules/
 vendor/
-out/
 src/
 phpcs-reports/
 .eslintrc.json
-jest.config.js
+jest.config.json
 tsconfig.json
 webpack.config.js
 composer.json

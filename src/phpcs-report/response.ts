@@ -11,9 +11,9 @@ import { CodeAction } from '../types';
  * The type of PHPCS report that a request should fetch.
  */
 export enum ReportType {
-	Diagnostic,
-	CodeAction,
-	Format,
+	Diagnostic = 'Diagnostic',
+	CodeAction = 'CodeAction',
+	Format = 'Format',
 }
 
 /**

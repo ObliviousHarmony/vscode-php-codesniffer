@@ -1,17 +1,17 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer;
+namespace VSCode\PHP_CodeSniffer\Extension;
 
-use PHP_CodeSniffer\Files\File;
+use PHP_CodeSniffer\Files\File as BaseFile;
 use PHP_CodeSniffer\Sniffs\Sniff;
 
 /**
  * A class that supports targeting specific tokens for fixes to allow for
  * tracking the edits that should be created by a single
  *
- * @property Fixer|VSCodeFixer $fixer
+ * @property \VSCode\PHP_CodeSniffer\Extension\Fixer $fixer
  */
-class VSCodeFile extends File
+class File extends BaseFile
 {
     /**
      * A map containing the token pointers indexed by [line][column].
@@ -51,9 +51,9 @@ class VSCodeFile extends File
     /**
      * Constructs an instance from an existing file.
      *
-     * @param File $phpcsFile The file to use.
+     * @param BaseFile $phpcsFile The file to use.
      */
-    public function __construct(File $phpcsFile)
+    public function __construct(BaseFile $phpcsFile)
     {
         // Populate from the original file.
         $this->content = $phpcsFile->content;
@@ -78,9 +78,9 @@ class VSCodeFile extends File
     /**
      * Gets the stack pointer for a position.
      *
-     * @param int $line The line to check.
-     * @param int $column The column to check.
-     * @param bool $useRangeFormat Indicates we should find the VS Code range format.
+     * @param  int  $line           The line to check.
+     * @param  int  $column         The column to check.
+     * @param  bool $useRangeFormat Indicates we should find the VS Code range format.
      * @return int|null
      */
     public function getStackPtrForPosition($line, $column, $useRangeFormat = false)
@@ -103,7 +103,7 @@ class VSCodeFile extends File
     /**
      * Gets a specific token.
      *
-     * @param int $stackPtr The token pointer to fetch.
+     * @param  int $stackPtr The token pointer to fetch.
      * @return array
      */
     public function getToken($stackPtr)
@@ -114,8 +114,8 @@ class VSCodeFile extends File
     /**
      * Formats a document range and returns the changed content as a result.
      *
-     * @param int|null $startToken The token to start formatting from.
-     * @param int|null $endToken The token to end formatting on.
+     * @param  int|null $startToken The token to start formatting from.
+     * @param  int|null $endToken   The token to end formatting on.
      * @return string
      */
     public function formatRange($startToken, $endToken)
@@ -138,8 +138,8 @@ class VSCodeFile extends File
     /**
      * Fixes a single code action and returns the content changed as a result.
      *
-     * @param int $sourceStackPtr The position we want to fix.
-     * @param source $source The problem we want to fix.
+     * @param  int    $sourceStackPtr The position we want to fix.
+     * @param  string $source         The problem we want to fix.
      * @return array
      */
     public function fixCodeAction($sourceStackPtr, $source)
@@ -156,7 +156,7 @@ class VSCodeFile extends File
         // Replace the fixer with a custom one that can give us insight into
         // the specific tokens that have been replaced.
         $fixer = $this->fixer;
-        $this->fixer = new VSCodeFixer();
+        $this->fixer = new Fixer();
         $this->fixer->enabled = true;
         $this->fixer->startFile($this);
 
@@ -297,7 +297,7 @@ class VSCodeFile extends File
     /**
      * Fetches the sniff class instance for the given message source.
      *
-     * @param string $source
+     * @param  string $source
      * @return Sniff|null
      */
     private function getSniffFromMessageSource($source)
@@ -316,7 +316,7 @@ class VSCodeFile extends File
     /**
      * Takes an array of changed tokens and merged contiguous blocks into text edits.
      *
-     * @param array $changedTokens All of the tokens that changed.
+     * @param  array $changedTokens All of the tokens that changed.
      * @return array
      */
     private function getTextEdits($changedTokens)

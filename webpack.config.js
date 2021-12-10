@@ -6,7 +6,7 @@ const config = {
     target: 'node',
     entry: './src/extension.ts',
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname),
         filename: 'extension.js',
         libraryTarget: 'commonjs2',
         devtoolModuleFilenameTemplate: "../[resource-path]",
@@ -23,14 +23,6 @@ const config = {
             {
                 test: /\.ts$/,
                 loader: 'ts-loader'
-            },
-            {
-                test: /\.php$/,
-                loader: 'file-loader',
-                options: {
-                    name: '[path][name].[ext]',
-                    esModule: false,
-                }
             }
         ]
     }

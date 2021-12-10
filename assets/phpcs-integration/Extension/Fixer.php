@@ -1,13 +1,13 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer;
+namespace VSCode\PHP_CodeSniffer\Extension;
 
-use PHP_CodeSniffer\Fixer;
+use PHP_CodeSniffer\Fixer as BaseFixer;
 
 /**
- * An override of the fixer that we can use to track the changes that sniffs make to the file.
+ * An extension of the fixer that we can use to track the changes that sniffs make to the file.
  */
-class VSCodeFixer extends Fixer
+class Fixer extends BaseFixer
 {
     /**
      * Indicates whether or not the text edit is in a changeset.

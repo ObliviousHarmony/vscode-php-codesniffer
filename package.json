@@ -10,7 +10,7 @@
     "url": "https://github.com/ObliviousHarmony/vscode-php-codesniffer.git"
   },
   "publisher": "obliviousharmony",
-  "icon": "icon.png",
+  "icon": "assets/icon.png",
   "galleryBanner": {
     "color": "#B0B3D6",
     "theme": "dark"
@@ -22,7 +22,7 @@
   "engines": {
     "vscode": "^1.53.0"
   },
-  "main": "dist/extension.js",
+  "main": "extension.js",
   "extensionKind": [
     "workspace"
   ],
@@ -113,25 +113,26 @@
   },
   "devDependencies": {
     "@types/jest": "^26.0.23",
-    "@types/node": "^12.20.13",
+    "@types/node": "^12.20.37",
     "@types/vscode": "~1.53.0",
-    "@typescript-eslint/eslint-plugin": "^4.25.0",
-    "@typescript-eslint/parser": "^4.25.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.27.0",
     "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-prettier": "^3.4.1",
     "file-loader": "^6.2.0",
     "jest": "^26.6.3",
     "prettier": "2.3.0",
     "ts-jest": "^26.5.6",
     "ts-loader": "^8.3.0",
-    "typescript": "^4.2.4",
-    "webpack": "^5.37.1",
-    "webpack-cli": "^4.7.0"
+    "typescript": "^4.5.3",
+    "vsce": "^2.5.1",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1"
   },
   "scripts": {
     "vscode:prepublish": "npm run clean && webpack --mode production",
-    "clean": "rimraf dist",
+    "clean": "rimraf extension.js extension.js.map",
     "build": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "lint": "eslint ./src --fix",

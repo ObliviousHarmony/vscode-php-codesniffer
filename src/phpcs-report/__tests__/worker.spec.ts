@@ -8,28 +8,19 @@ import { ReportType } from '../response';
 import { Worker } from '../worker';
 
 // We need to mock the report files because Webpack is being used to bundle them.
-jest.mock('../report-files', () => {
-	const phpcsDir = resolvePath(__dirname, '..', '..', '..', 'phpcs-reports');
-	const includesDir = resolvePath(phpcsDir, 'includes');
-
-	return {
-		Dependencies: {
-			VSCodeFile: resolvePath(includesDir, 'VSCodeFile.php'),
-			VSCodeFixer: resolvePath(includesDir, 'VSCodeFixer.php'),
-			VSCodeReport: resolvePath(includesDir, 'VSCodeReport.php'),
-		},
-		ReportFiles: {
-			Diagnostic: resolvePath(phpcsDir, 'Diagnostic.php'),
-			CodeAction: resolvePath(phpcsDir, 'CodeAction.php'),
-			Format: resolvePath(phpcsDir, 'Format.php'),
-		},
-	};
-});
-
 describe('Worker', () => {
 	let phpcsPath: string;
 
 	beforeAll(() => {
+		// Make sure the test knows where the real assets are located.
+		process.env.ASSETS_PATH = resolvePath(
+			__dirname,
+			'..',
+			'..',
+			'..',
+			'assets'
+		);
+
 		phpcsPath = resolvePath(
 			__dirname,
 			'..',
