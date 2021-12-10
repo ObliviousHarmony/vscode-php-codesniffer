@@ -3,7 +3,6 @@
 node_modules/
 vendor/
 src/
-phpcs-reports/
 .eslintrc.json
 jest.config.json
 tsconfig.json
