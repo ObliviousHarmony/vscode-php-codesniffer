@@ -14,9 +14,9 @@
         "plugin:prettier/recommended"
     ],
     "ignorePatterns": [
-        "/dist/",
         "/node_modules/",
-        "webpack.config.js"
+        "webpack.config.js",
+        "extension.js"
     ],
     "rules": {
         "@typescript-eslint/no-unused-vars": "off",

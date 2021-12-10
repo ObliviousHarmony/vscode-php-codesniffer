@@ -8,7 +8,8 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceFolder}/dist/**/*.js"
+                "${workspaceFolder}/extension.js",
+                "${workspaceFolder}/assets/**/*.php"
             ],
             "preLaunchTask": "${defaultBuildTask}"
         }

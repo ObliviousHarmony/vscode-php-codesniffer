@@ -3,6 +3,6 @@
         "squizlabs/php_codesniffer": "^3.1"
     },
     "scripts": {
-        "lint": "phpcs --standard=psr12 -sp phpcs-reports"
+        "lint": "phpcs --standard=psr12 -sp assets"
     }
 }

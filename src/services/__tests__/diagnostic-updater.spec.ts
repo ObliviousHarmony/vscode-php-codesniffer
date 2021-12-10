@@ -7,6 +7,7 @@ import {
 	DiagnosticSeverity,
 	CodeActionKind,
 } from 'vscode';
+import { resolve as resolvePath } from 'path';
 import { CodeAction, CodeActionCollection } from '../../types';
 import {
 	Configuration,
@@ -25,20 +26,6 @@ import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
 import { LinterStatus } from '../linter-status';
 
-jest.mock('../../phpcs-report/report-files', () => {
-	return {
-		Dependencies: {
-			VSCodeFile: 'VSCodeFile.php',
-			VSCodeFixer: 'VSCodeFixer.php',
-			VSCodeReport: 'VSCodeReport.php',
-		},
-		ReportFiles: {
-			Diagnostic: 'Diagnostic.php',
-			CodeAction: 'CodeAction.php',
-			Format: 'Format.php',
-		},
-	};
-});
 jest.mock('../logger');
 jest.mock('../linter-status');
 jest.mock('../configuration');
@@ -68,6 +55,15 @@ describe('DiagnosticUpdater', () => {
 	let diagnosticUpdater: DiagnosticUpdater;
 
 	beforeEach(() => {
+		// Make sure the test knows where the real assets are located.
+		process.env.ASSETS_PATH = resolvePath(
+			__dirname,
+			'..',
+			'..',
+			'..',
+			'assets'
+		);
+
 		mockLogger = new Logger(window);
 		mockConfiguration = new Configuration(workspace);
 		mockWorkerPool = new WorkerPool(1);

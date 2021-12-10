@@ -1,7 +1,7 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
+import { resolve as resolvePath } from 'path';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
 import { StandardType } from '../services/configuration';
-import { ReportFiles } from './report-files';
 import { Request } from './request';
 import { ReportType, Response } from './response';
 
@@ -152,26 +152,6 @@ export class Worker {
 	}
 
 	/**
-	 * Returns an absolute path to the report file for the given type of report.
-	 *
-	 * @param {ReportType} type The type of report we're getting the path of.
-	 */
-	private getReportFile(type: ReportType): string {
-		switch (type) {
-			case ReportType.Diagnostic:
-				return ReportFiles.Diagnostic;
-			case ReportType.CodeAction:
-				return ReportFiles.CodeAction;
-			case ReportType.Format:
-				return ReportFiles.Format;
-			default:
-				throw new Error(
-					`An invalid report type of "${type}" was used.`
-				);
-		}
-	}
-
-	/**
 	 * Creates a PHPCS process to execute the report generation.
 	 *
 	 * @param {Request} request The request we're processing.
@@ -181,9 +161,15 @@ export class Worker {
 		resolve: (response: Response<T>) => void,
 		reject: (e?: unknown) => void
 	): ChildProcess {
+		// Figure out the path to the PHPCS integration.
+		const assetPath =
+			process.env.ASSETS_PATH || resolvePath(__dirname, 'assets');
+
+		// Prepare the arguments for our PHPCS process.
 		const processArguments = [
 			'-q', // Make sure custom configs never break our output.
-			'--report=' + this.getReportFile(request.type),
+			'--report=' +
+				resolvePath(assetPath, 'phpcs-integration', 'VSCode.php'),
 			// We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.
 			'--runtime-set',
 			'ignore_warnings_on_exit',
@@ -198,15 +184,17 @@ export class Worker {
 			processArguments.push('--standard=' + request.options.standard);
 		}
 
-		const processOptions: SpawnOptionsWithoutStdio = {};
-
-		// Pass the request data using environment vars.
-		if (request.data) {
-			processOptions.env = process.env;
-			processOptions.env['PHPCS_VSCODE_DATA'] = JSON.stringify(
-				request.data
-			);
-		}
+		// Prepare the options for the PHPCS process.
+		const processOptions: SpawnOptionsWithoutStdio = {
+			env: {
+				...process.env,
+				// Pass the request data using environment vars.
+				PHPCS_VSCODE_INPUT: JSON.stringify({
+					type: request.type,
+					data: request.data,
+				}),
+			},
+		};
 
 		// Give the working directory when requested.
 		if (request.options.workingDirectory) {
@@ -247,6 +235,7 @@ export class Worker {
 			}
 
 			if (code !== 0) {
+				console.log(pendingReport, pendingError);
 				reject(new PHPCSError(pendingReport, pendingError));
 				return;
 			}
