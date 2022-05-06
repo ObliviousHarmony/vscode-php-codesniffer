@@ -179,6 +179,24 @@ export class Worker {
 			'1',
 		];
 
+		// Since the executable may also include arguments, we need to break the given option
+		// apart and track the specific process and add the args to the array we will use
+		// to spawn the process. We will break on spaces but also support quoted strings.
+		const executableMatches = request.options.executable.match( /`((?:[^`\\]|\\`)*)`|'((?:[^'\\]|\\')*)'|"((?:[^"\\]|\\")*)"|([^\s"]+)/g );
+		if (!executableMatches) {
+			throw new Error('No executable was given.');
+		}
+
+		// The first segment will always be the executable.
+		const executable = executableMatches.shift();
+		if (!executable) {
+			throw new Error('No executable was given.');
+		}
+
+		// Any remaining matches will be arguments that we pass to the executable.
+		// Make sure to add them to the front so it runs PHPCS correctly.
+		processArguments.unshift(...executableMatches);
+
 		// Only set the standard when the user has selected one.
 		if (request.options.standard !== StandardType.Default) {
 			processArguments.push('--standard=' + request.options.standard);
@@ -203,7 +221,7 @@ export class Worker {
 
 		// Create a new process to fetch the report.
 		const phpcsProcess = spawn(
-			request.options.executable,
+			executable,
 			processArguments,
 			processOptions
 		);
