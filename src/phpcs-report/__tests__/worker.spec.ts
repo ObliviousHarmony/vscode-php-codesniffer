@@ -192,4 +192,27 @@ describe('Worker', () => {
 		expect(onActiveChanged).toHaveBeenCalledTimes(2);
 		expect(onActiveChanged).toHaveBeenLastCalledWith(worker);
 	});
+
+	it('should support executables with spaces', async () => {
+		const worker = new Worker();
+
+		const request: Request<ReportType.Diagnostic> = {
+			type: ReportType.Diagnostic,
+			documentPath: 'Test.php',
+			documentContent: '<?php class Test {}',
+			options: {
+				workingDirectory: __dirname,
+				// Adding the PHP executable won't break the PHPCS script.
+				executable: '/usr/bin/env php ' + phpcsPath,
+				standard: StandardType.PSR12,
+			},
+			data: null,
+		};
+
+		const response = await worker.execute(request);
+
+		expect(response).toHaveProperty('type', ReportType.Diagnostic);
+		expect(response).toHaveProperty('report');
+		expect(response.report).not.toBeUndefined();
+	});
 });
