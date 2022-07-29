@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.6.0] - 2022-05-06
 ### Fixed
+- Document formatting with no changes clears diagnostics.
+
+## [1.6.0] - 2022-05-06
+### Fixed
 - `phpCodeSniffer.executable` options with spaces throwing errors.
 
 ## [1.5.0] - 2021-12-10
@@ -26,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2021-05-21
 ### Added
-- Status bar indicator when PHPCS is generating diagnosts.
+- Status bar indicator when PHPCS is generating diagnostics.
 
 ### Fixed
 - Erroneous PHP output should not break PHPCS report parsing.

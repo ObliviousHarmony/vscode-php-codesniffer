@@ -51,7 +51,7 @@ class Diagnostic implements Handler
                         'range' => $token['vscode_range'],
                         // Enum Values: DiagnosticSeverity.Error : DiagnosticSeverity.Warning
                         'severity' => strtolower($message['type']) === 'error' ? 0 : 1,
-                        'source' => 'PHP_CodeSniffer',
+                        'source' => 'PHP_CodeSniffer'
                     );
                     $diagnostics[$diagnosticIndex++] = $diagnostic;
                 }

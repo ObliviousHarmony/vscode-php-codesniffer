@@ -16,9 +16,8 @@ import { DocumentFormatter } from '../services/document-formatter';
  */
 export class FormatDocumentProvider
 	implements
-		DocumentFormattingEditProvider,
-		DocumentRangeFormattingEditProvider
-{
+	DocumentFormattingEditProvider,
+	DocumentRangeFormattingEditProvider {
 	/**
 	 * The formatter that we will use.
 	 */
@@ -79,11 +78,13 @@ export class FormatDocumentProvider
 	): ProviderResult<TextEdit[]> {
 		return this.documentFormatter
 			.format(document, range, cancellationToken)
-			.then((edit) => {
-				// Clear any of the diagnostics for the document since we've formatted it and will re-scan.
-				this.diagnosticUpdater.clearDocument(document);
+			.then((edits) => {
+				// When the document has been changed, we should clear any diagnostics so that it will be re-scanned after it updates.
+				if (edits.length) {
+					this.diagnosticUpdater.clearDocument(document);
+				}
 
-				return edit;
+				return edits;
 			});
 	}
 }
