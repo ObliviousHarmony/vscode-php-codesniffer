@@ -81,7 +81,7 @@ export class DocumentFormatter extends WorkerService {
 
 				// Transform the content into a document-wide edit.
 				const edits: TextEdit[] = [];
-				if (response.report) {
+				if (response.report && response.report.content !== undefined) {
 					edits.push(
 						new TextEdit(
 							new Range(0, 0, document.lineCount, 0),
