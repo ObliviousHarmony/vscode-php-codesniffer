@@ -255,12 +255,11 @@ class File extends BaseFile
             // to make the data easier to work with.
             if (isset($token['orig_content'])) {
                 $columnWidth = mb_strlen($token['orig_content']);
-                $endsWithNewline = substr($token['orig_content'], -1);
+                $endsWithNewline = substr($token['orig_content'], -1) === "\n";
             } else {
                 $columnWidth = $token['length'];
-                $endsWithNewline = substr($token['content'], -1);
+                $endsWithNewline = substr($token['content'], -1) === "\n";
             }
-            $endsWithNewline = $endsWithNewline === "\n" || $endsWithNewline === "\r\n";
 
             $originalColumn = $column - $columnOffset;
 
@@ -285,10 +284,15 @@ class File extends BaseFile
             // Store the range object to use elsewhere.
             $this->tokens[$stackPtr]['vscode_range'] = $range;
 
-            // Make it easy to find the specific token associated with a position.
-            $this->tokenPositionMap[$line][$column] = $stackPtr;
-            // We will also store the range position for convenience.
-            $this->tokenPositionMap[$range['startLine'] . ':' . $range['startCharacter']] = $stackPtr;
+            // Create a map to convert from a line/character position to a token pointer.
+            for ($mapPos = $column; $mapPos <= $column + $token['length']; $mapPos++) {
+                $this->tokenPositionMap[$line][$mapPos] = $stackPtr;
+            }
+
+            // Do the same with range positions.
+            for ($mapPos = $range['startCharacter']; $mapPos <= $range['startCharacter'] + $columnWidth; ++$mapPos) {
+                $this->tokenPositionMap[$range['startLine'] . ':' . $mapPos] = $stackPtr;
+            }
 
             // Our offset is the difference between the old and new lengths.
             $columnOffset += $token['length'] - $columnWidth;
