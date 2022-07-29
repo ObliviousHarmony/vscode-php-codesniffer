@@ -203,40 +203,31 @@ class File extends BaseFile
         return $this->getTextEdits($changedTokens);
     }
 
-    public function addFixableError($error, $stackPtr, $code, $data = array(), $severity = 0)
+    /**
+     * Attempts to record a message if we aren't actively ignoring it.
+     *
+     * @inheritDoc
+     */
+    protected function addMessage($error, $message, $line, $column, $code, $data, $severity, $fixable)
     {
-        if (isset($this->codeActionToken)) {
-            // We will assume that the error can be recorded because it wouldn't be in here otherwise.
-            return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
+        // Check to see if we're only looking for a specific subset of messages.
+        $stackPtr = $this->getStackPtrForPosition($line, $column);
+        if (isset($stackPtr)) {
+            if (isset($this->codeActionToken)) {
+                // We will assume that the error can be recorded because it wouldn't be in here otherwise.
+                return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
+            }
+
+            // Check the format range if one is set.
+            if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
+                return false;
+            }
+            if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
+                return false;
+            }
         }
 
-        // Check the format range if one is set.
-        if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
-            return false;
-        }
-        if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
-            return false;
-        }
-
-        return parent::addFixableError($error, $stackPtr, $code, $data, $severity);
-    }
-
-    public function addFixableWarning($warning, $stackPtr, $code, $data = array(), $severity = 0)
-    {
-        if (isset($this->codeActionToken)) {
-            // We will assume that the error can be recorded because it wouldn't be in here otherwise.
-            return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
-        }
-
-        // Check the format range if one is set.
-        if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
-            return false;
-        }
-        if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
-            return false;
-        }
-
-        return parent::addFixableWarning($warning, $stackPtr, $code, $data, $severity);
+        return parent::addMessage($error, $message, $line, $column, $code, $data, $severity, $fixable);
     }
 
     /**
