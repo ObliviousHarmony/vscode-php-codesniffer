@@ -182,7 +182,9 @@ export class Worker {
 		// Since the executable may also include arguments, we need to break the given option
 		// apart and track the specific process and add the args to the array we will use
 		// to spawn the process. We will break on spaces but also support quoted strings.
-		const executableMatches = request.options.executable.match( /`((?:[^`\\]|\\`)*)`|'((?:[^'\\]|\\')*)'|"((?:[^"\\]|\\")*)"|([^\s"]+)/g );
+		const executableMatches = request.options.executable.match(
+			/`((?:[^`\\]|\\`)*)`|'((?:[^'\\]|\\')*)'|"((?:[^"\\]|\\")*)"|([^\s"]+)/g
+		);
 		if (!executableMatches) {
 			throw new Error('No executable was given.');
 		}

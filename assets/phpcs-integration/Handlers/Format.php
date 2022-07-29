@@ -40,6 +40,11 @@ class Format implements Handler
         // Format the given range.
         $newContent = $file->formatRange($startToken, $endToken);
 
+        // We have nothing to return if the file wasn't modified.
+        if ($newContent === false) {
+            return false;
+        }
+
         echo json_encode(
             array(
                 'filename' => $report['filename'],

@@ -50,6 +50,9 @@ class CodeAction implements Handler
 
             // Fix the specific action and render the edits.
             $edits = $file->fixCodeAction($stackPtr, $problemSource);
+            if (empty($edits)) {
+                continue;
+            }
 
             echo json_encode(
                 array(

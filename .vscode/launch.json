@@ -2,13 +2,14 @@
     "configurations": [
         {
             "name": "Launch Extension",
-            "type": "pwa-extensionHost",
+            "type": "extensionHost",
             "request": "launch",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
                 "${workspaceFolder}/extension.js",
+                "${workspaceFolder}/extension.js.map",
                 "${workspaceFolder}/assets/**/*.php"
             ],
             "preLaunchTask": "${defaultBuildTask}"

@@ -69,6 +69,11 @@ class File extends BaseFile
         $this->prepareTokensForVSCode();
     }
 
+    /**
+     * Parses the file and ensures that the tokens have been prepared for VS Code.
+     *
+     * @inheritDoc
+     */
     public function parse()
     {
         parent::parse();
@@ -131,6 +136,11 @@ class File extends BaseFile
         // Set us back so that the fixer will operate normally.
         $this->formatStartToken = null;
         $this->formatEndToken = null;
+
+        // Make sure the caller knows when nothing has been formatted.
+        if ($this->fixedCount <= 0) {
+            return false;
+        }
 
         return $this->fixer->getContents();
     }

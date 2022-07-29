@@ -35,7 +35,7 @@ interface CodeActionReport {
  * The "Format" report type from PHPCS.
  */
 interface FormatReport {
-	content: string;
+	content?: string;
 }
 
 /**
@@ -173,9 +173,7 @@ export class Response<T extends ReportType> {
 		}
 
 		if (type === ReportType.Format) {
-			const report: FormatReport = {
-				content: '',
-			};
+			const report: FormatReport = {};
 
 			// Transform all of the edits into real objects.
 			for (const file of jsonReport.files) {
