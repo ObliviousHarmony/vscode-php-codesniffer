@@ -203,40 +203,31 @@ class File extends BaseFile
         return $this->getTextEdits($changedTokens);
     }
 
-    public function addFixableError($error, $stackPtr, $code, $data = array(), $severity = 0)
+    /**
+     * Attempts to record a message if we aren't actively ignoring it.
+     *
+     * @inheritDoc
+     */
+    protected function addMessage($error, $message, $line, $column, $code, $data, $severity, $fixable)
     {
-        if (isset($this->codeActionToken)) {
-            // We will assume that the error can be recorded because it wouldn't be in here otherwise.
-            return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
+        // Check to see if we're only looking for a specific subset of messages.
+        $stackPtr = $this->getStackPtrForPosition($line, $column);
+        if (isset($stackPtr)) {
+            if (isset($this->codeActionToken)) {
+                // We will assume that the error can be recorded because it wouldn't be in here otherwise.
+                return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
+            }
+
+            // Check the format range if one is set.
+            if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
+                return false;
+            }
+            if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
+                return false;
+            }
         }
 
-        // Check the format range if one is set.
-        if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
-            return false;
-        }
-        if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
-            return false;
-        }
-
-        return parent::addFixableError($error, $stackPtr, $code, $data, $severity);
-    }
-
-    public function addFixableWarning($warning, $stackPtr, $code, $data = array(), $severity = 0)
-    {
-        if (isset($this->codeActionToken)) {
-            // We will assume that the error can be recorded because it wouldn't be in here otherwise.
-            return $this->codeActionToken === $stackPtr && $this->codeActionSource === $code;
-        }
-
-        // Check the format range if one is set.
-        if (isset($this->formatStartToken) && $stackPtr < $this->formatStartToken) {
-            return false;
-        }
-        if (isset($this->formatEndToken) && $stackPtr > $this->formatEndToken) {
-            return false;
-        }
-
-        return parent::addFixableWarning($warning, $stackPtr, $code, $data, $severity);
+        return parent::addMessage($error, $message, $line, $column, $code, $data, $severity, $fixable);
     }
 
     /**
@@ -264,12 +255,11 @@ class File extends BaseFile
             // to make the data easier to work with.
             if (isset($token['orig_content'])) {
                 $columnWidth = mb_strlen($token['orig_content']);
-                $endsWithNewline = substr($token['orig_content'], -1);
+                $endsWithNewline = substr($token['orig_content'], -1) === "\n";
             } else {
                 $columnWidth = $token['length'];
-                $endsWithNewline = substr($token['content'], -1);
+                $endsWithNewline = substr($token['content'], -1) === "\n";
             }
-            $endsWithNewline = $endsWithNewline === "\n" || $endsWithNewline === "\r\n";
 
             $originalColumn = $column - $columnOffset;
 
@@ -294,10 +284,15 @@ class File extends BaseFile
             // Store the range object to use elsewhere.
             $this->tokens[$stackPtr]['vscode_range'] = $range;
 
-            // Make it easy to find the specific token associated with a position.
-            $this->tokenPositionMap[$line][$column] = $stackPtr;
-            // We will also store the range position for convenience.
-            $this->tokenPositionMap[$range['startLine'] . ':' . $range['startCharacter']] = $stackPtr;
+            // Create a map to convert from a line/character position to a token pointer.
+            for ($mapPos = $column; $mapPos <= $column + $token['length']; $mapPos++) {
+                $this->tokenPositionMap[$line][$mapPos] = $stackPtr;
+            }
+
+            // Do the same with range positions.
+            for ($mapPos = $range['startCharacter']; $mapPos <= $range['startCharacter'] + $columnWidth; ++$mapPos) {
+                $this->tokenPositionMap[$range['startLine'] . ':' . $mapPos] = $stackPtr;
+            }
 
             // Our offset is the difference between the old and new lengths.
             $columnOffset += $token['length'] - $columnWidth;
