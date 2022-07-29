@@ -48,8 +48,20 @@
         "phpCodeSniffer.ignorePatterns": {
           "type": "array",
           "description": "An array of regular expressions for paths that should be ignored by the extension.",
+          "markdownDeprecationMessage": "File and folder exclusions should use glob patterns in `#phpCodeSniffer.exclude#` instead.",
           "default": [
             ".*/vendor/.*"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "scope": "window"
+        },
+        "phpCodeSniffer.exclude": {
+          "type": "array",
+          "description": "Glob patterns for files and folders that should be ignored by the extension.",
+          "default": [
+            "**/vendor/**"
           ],
           "items": {
             "type": "string"
@@ -111,10 +123,14 @@
       }
     ]
   },
+  "dependencies": {
+    "minimatch": "^3.0.4"
+  },
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "@types/node": "^12.20.37",
     "@types/vscode": "~1.53.0",
+    "@types/minimatch": "^3.0.4",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.27.0",

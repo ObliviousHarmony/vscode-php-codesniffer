@@ -69,12 +69,16 @@ describe('Configuration', () => {
 					return false;
 				case 'executable':
 					return 'test.exec';
-				case 'ignorePatterns':
-					return ['test'];
+				case 'exclude':
+					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
 					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
+
+				// Deprecated options.
+				case 'ignorePatterns':
+					return undefined;
 			}
 
 			fail(
@@ -91,7 +95,7 @@ describe('Configuration', () => {
 		expect(result).toMatchObject({
 			workingDirectory: 'test/file',
 			executable: 'test.exec',
-			ignorePatterns: [new RegExp('test')],
+			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
 			standard: StandardType.Disabled,
 		});
 
@@ -153,12 +157,16 @@ describe('Configuration', () => {
 					return true;
 				case 'executable':
 					return 'test.exec';
-				case 'ignorePatterns':
-					return ['test'];
+				case 'exclude':
+					return [];
 				case 'lintAction':
 					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
+
+				// Deprecated settings.
+				case 'ignorePatterns':
+					return undefined;
 			}
 
 			fail(
@@ -175,7 +183,7 @@ describe('Configuration', () => {
 		expect(result).toMatchObject({
 			workingDirectory: 'test',
 			executable: 'test/newvendor/bin/phpcs',
-			ignorePatterns: [new RegExp('test')],
+			exclude: [],
 			standard: StandardType.Disabled,
 		});
 
@@ -239,12 +247,16 @@ describe('Configuration', () => {
 					return true;
 				case 'executable':
 					return 'test.exec';
-				case 'ignorePatterns':
-					return ['test'];
+				case 'exclude':
+					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
 					return LintAction.Change;
 				case 'standard':
 					return StandardType.Disabled;
+
+				// Deprecated settings.
+				case 'ignorePatterns':
+					return undefined;
 			}
 
 			fail(
@@ -258,5 +270,55 @@ describe('Configuration', () => {
 		cancellationToken.mockCancel();
 
 		return expect(promise).rejects.toMatchObject(new CancellationError());
+	});
+
+	describe('deprecated options', () => {
+		it('should handle "ignorePatterns" deprecation', async () => {
+			const mockConfiguration = { get: jest.fn() };
+			mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+
+			mockConfiguration.get.mockImplementation((key) => {
+				switch (key) {
+					case 'autoExecutable':
+						return false;
+					case 'executable':
+						return 'test.exec';
+					case 'exclude':
+						return ['test/{test|test-test}/*.php'];
+					case 'lintAction':
+						return LintAction.Change;
+					case 'standard':
+						return StandardType.Disabled;
+
+					// Deprecated options.
+					case 'ignorePatterns':
+						return ['test'];
+				}
+
+				fail(
+					'An unexpected configuration key of ' +
+						key +
+						' was received.'
+				);
+			});
+
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test',
+				executable: 'test.exec',
+				exclude: [
+					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,
+					/test/,
+				],
+				standard: StandardType.Disabled,
+			});
+		});
 	});
 });
