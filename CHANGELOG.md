@@ -5,9 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Use glob patterns to exclude files and folders from linting using the `phpCodeSniffer.exclude` option.
+
 ### Fixed
 - Document formatting with no changes clears diagnostics.
 - Document selection formatting only works on the first character of the diagnostic.
+
+### Deprecated
+- `phpCodeSniffer.ignorePatterns` has been deprecated in favor of using glob patterns over regular expressions.
 
 ## [1.6.0] - 2022-05-06
 ### Fixed
