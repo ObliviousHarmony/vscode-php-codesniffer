@@ -95,7 +95,7 @@ describe('DiagnosticUpdater', () => {
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
-			ignorePatterns: [],
+			exclude: [],
 			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
@@ -152,7 +152,7 @@ describe('DiagnosticUpdater', () => {
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
-			ignorePatterns: [],
+			exclude: [],
 			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
@@ -178,14 +178,14 @@ describe('DiagnosticUpdater', () => {
 		diagnosticUpdater.update(document, LintAction.Force);
 	});
 
-	it('should respect ignore patterns', () => {
+	it('should respect exclude patterns', () => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
-			ignorePatterns: [new RegExp('.*/file/.*')],
+			exclude: [new RegExp('.*/file/.*')],
 			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
@@ -200,7 +200,7 @@ describe('DiagnosticUpdater', () => {
 		mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
-			ignorePatterns: [],
+			exclude: [],
 			lintAction: LintAction.Save,
 			standard: StandardType.PSR12,
 		});

@@ -16,8 +16,9 @@ import { DocumentFormatter } from '../services/document-formatter';
  */
 export class FormatDocumentProvider
 	implements
-	DocumentFormattingEditProvider,
-	DocumentRangeFormattingEditProvider {
+		DocumentFormattingEditProvider,
+		DocumentRangeFormattingEditProvider
+{
 	/**
 	 * The formatter that we will use.
 	 */

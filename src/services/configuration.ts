@@ -1,4 +1,5 @@
 import { TextDecoder } from 'util';
+import { Minimatch } from 'minimatch';
 import {
 	CancellationError,
 	CancellationToken,
@@ -56,7 +57,7 @@ interface ParamsFromFilesystem {
 interface ParamsFromConfiguration {
 	autoExecutable: boolean;
 	executable: string;
-	ignorePatterns: RegExp[];
+	exclude: RegExp[];
 	lintAction: LintAction;
 	standard: string;
 }
@@ -76,9 +77,9 @@ export interface DocumentConfiguration {
 	executable: string;
 
 	/**
-	 * The ignore patterns we should use when executing reports/
+	 * The patterns we should use when excluding files and folders from reports.
 	 */
-	ignorePatterns: RegExp[];
+	exclude: RegExp[];
 
 	/**
 	 * The editor action that should trigger the linter.
@@ -148,7 +149,7 @@ export class Configuration {
 		config = {
 			workingDirectory: fromFilesystem.workingDirectory,
 			executable: fromFilesystem.executable ?? fromConfig.executable,
-			ignorePatterns: fromConfig.ignorePatterns,
+			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
 		};
@@ -226,29 +227,41 @@ export class Configuration {
 		const autoExecutable = config.get<boolean>('autoExecutable');
 		if (autoExecutable === undefined) {
 			throw new Error(
-				'The extension has an invalid `autoExecutable` configuration.'
+				'The extension has an invalid `phpCodeSniffer.autoExecutable` configuration.'
 			);
 		}
 
 		const executable = config.get<string>('executable');
 		if (executable === undefined) {
 			throw new Error(
-				'The extension has an invalid `executable` configuration.'
+				'The extension has an invalid `phpCodeSniffer.executable` configuration.'
 			);
 		}
 
-		const rawPatterns = config.get<string[]>('ignorePatterns');
+		let rawPatterns = config.get<string[]>('exclude');
 		if (!Array.isArray(rawPatterns)) {
 			throw new Error(
-				'The extension has an invalid `ignorePatterns` configuration.'
+				'The extension has an invalid `phpCodeSniffer.exclude` configuration.'
 			);
 		}
-		const ignorePatterns = rawPatterns.map((v) => new RegExp(v));
+		const exclude = rawPatterns.map((v) => new Minimatch(v).makeRe());
+
+		// Support the deprecated `ignorePatterns` option.
+		rawPatterns = config.get<string[]>('ignorePatterns');
+		if (rawPatterns) {
+			if (!Array.isArray(rawPatterns)) {
+				throw new Error(
+					'The extension has an invalid `phpCodeSniffer.ignorePatterns` configuration.'
+				);
+			}
+
+			exclude.push(...rawPatterns.map((v) => new RegExp(v)));
+		}
 
 		const lintAction = config.get<LintAction>('lintAction');
 		if (lintAction === undefined) {
 			throw new Error(
-				'The extension has an invalid `lintAction` configuration.'
+				'The extension has an invalid `phpCodeSniffer.lintAction` configuration.'
 			);
 		}
 
@@ -263,7 +276,7 @@ export class Configuration {
 		return {
 			autoExecutable,
 			executable,
-			ignorePatterns,
+			exclude,
 			lintAction,
 			standard,
 		};

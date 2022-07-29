@@ -8,7 +8,7 @@ VS Code's available features.
 
 ## Configuration
 
-Out of the box this extension will do nothing and must be configured prior to use.
+_**Until you configure it, this extension will not lint any files.**_
 
 ### Standard (`phpCodeSniffer.standard`)
 
@@ -25,3 +25,7 @@ the `phpCodeSniffer.autoExecutable` option if you'd like for the extension to au
 executable. This works by looking for a `{vendor-dir}/bin/phpcs` file in the document's directory and then
 traversing up to the workspace folder if it does not find one. When it fails to find one automatically it
 will fall back to the explicit option.
+
+### File and Folder Exclusions (`phpCodeSniffer.exclude`)
+
+This array of glob patterns allows you to exclude files and folders from linting. While the extension **does** respect any file rules in your coding standard, this option allows you to define additional rules.
