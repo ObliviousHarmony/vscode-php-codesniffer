@@ -15,6 +15,8 @@ import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
 import { LinterStatus } from './linter-status';
+import * as path from 'path';
+import * as fs from 'fs';
 
 /**
  * A custom error type for identifying when an update was prevented.
@@ -138,6 +140,45 @@ export class DiagnosticUpdater extends WorkerService {
 						break;
 				}
 
+				const confFileNames = [
+					'.phpcs.xml',
+					'.phpcs.xml.dist',
+					'phpcs.xml',
+					'phpcs.xml.dist',
+					'phpcs.ruleset.xml',
+					'ruleset.xml',
+				];
+
+				let fileDir = path.dirname(document.uri.fsPath);
+				const dirParts = fileDir.split('/');
+				let found = false;
+				let confFile;
+
+				do {
+					fileDir = '/' + path.join(...dirParts);
+
+					const files = fs.readdirSync(fileDir);
+
+					const fileName = files.find((file) => {
+						if (confFileNames.includes(file)) {
+							return true;
+						}
+						return false;
+					});
+
+					if (fileName) {
+						confFile = path.join(fileDir, fileName);
+						found = true;
+					}
+					dirParts.pop();
+				} while (
+					!found &&
+					dirParts.length &&
+					fileDir != configuration.workingDirectory
+				);
+
+				const standard = confFile || configuration.standard;
+
 				return this.workerPool
 					.waitForAvailable(
 						'diagnostic:' + document.fileName,
@@ -153,7 +194,7 @@ export class DiagnosticUpdater extends WorkerService {
 								workingDirectory:
 									configuration.workingDirectory,
 								executable: configuration.executable,
-								standard: configuration.standard,
+								standard: standard,
 							},
 							data: null,
 						};
