@@ -244,7 +244,18 @@ export class Configuration {
 				'The extension has an invalid `phpCodeSniffer.exclude` configuration.'
 			);
 		}
-		const exclude = rawPatterns.map((v) => new Minimatch(v).makeRe());
+
+		// Parse the glob patterns into a format we can use.
+		const exclude: RegExp[] = [];
+		for (const pattern of rawPatterns) {
+			const match = new Minimatch(pattern);
+			const regex = match.makeRe();
+			if (!regex) {
+				continue;
+			}
+
+			exclude.push(regex);
+		}
 
 		// Support the deprecated `ignorePatterns` option.
 		rawPatterns = config.get<string[]>('ignorePatterns');

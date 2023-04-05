@@ -1,4 +1,4 @@
-import { mocked } from 'ts-jest/utils';
+
 import { Worker } from '../worker';
 import { WorkerPool } from '../worker-pool';
 import { MockCancellationToken } from '../../__mocks__/vscode';
@@ -19,24 +19,22 @@ jest.mock('../worker', () => {
 });
 
 describe('WorkerPool', () => {
-	const MockedWorker = mocked(Worker, true);
-
 	afterEach(() => {
-		MockedWorker.mockClear();
+		jest.mocked(Worker).mockClear();
 	});
 
 	it('should resolve instantly if worker is available', () => {
 		const pool = new WorkerPool(1);
 
 		return expect(pool.waitForAvailable('test')).resolves.toStrictEqual(
-			MockedWorker.mock.results[0].value
+			jest.mocked(Worker).mock.results[0].value
 		);
 	});
 
 	it('should resolve when worker becomes available', () => {
 		const pool = new WorkerPool(1);
 
-		const mockWorker = MockedWorker.mock.results[0].value;
+		const mockWorker = jest.mocked(Worker).mock.results[0].value;
 
 		// Mark the worker as active so that the request will be queued.
 		mockWorker.isActive = true;
@@ -48,14 +46,14 @@ describe('WorkerPool', () => {
 		mockWorker.onActiveChanged(mockWorker);
 
 		return expect(promise).resolves.toStrictEqual(
-			MockedWorker.mock.results[0].value
+			jest.mocked(Worker).mock.results[0].value
 		);
 	});
 
 	it('should support cancellation', () => {
 		const pool = new WorkerPool(1);
 
-		const mockWorker = MockedWorker.mock.results[0].value;
+		const mockWorker = jest.mocked(Worker).mock.results[0].value;
 
 		// Mark the worker as active so that the request will be queued.
 		mockWorker.isActive = true;
@@ -73,7 +71,7 @@ describe('WorkerPool', () => {
 	it('should support waiting after cancellation', async () => {
 		const pool = new WorkerPool(1);
 
-		const mockWorker = MockedWorker.mock.results[0].value;
+		const mockWorker = jest.mocked(Worker).mock.results[0].value;
 
 		// Mark the worker as active so that the request will be queued.
 		mockWorker.isActive = true;
@@ -98,7 +96,7 @@ describe('WorkerPool', () => {
 		promise = pool.waitForAvailable('test', cancellationToken);
 
 		return expect(promise).resolves.toStrictEqual(
-			MockedWorker.mock.results[0].value
+			jest.mocked(Worker).mock.results[0].value
 		);
 	});
 });
