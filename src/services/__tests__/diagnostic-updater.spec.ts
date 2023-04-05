@@ -20,7 +20,6 @@ import {
 	MockDiagnosticCollection,
 	MockTextDocument,
 } from '../../__mocks__/vscode';
-import { mocked } from 'ts-jest/utils';
 import { PHPCSError, Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
@@ -81,25 +80,25 @@ describe('DiagnosticUpdater', () => {
 		);
 	});
 
-	it('should update diagnostics and code actions', async (done) => {
+	it('should update diagnostics and code actions', (done) => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
 		const mockWorker = new Worker();
-		mocked(mockWorkerPool).waitForAvailable.mockImplementation(
+		jest.mocked(mockWorkerPool).waitForAvailable.mockImplementation(
 			(workerKey) => {
 				expect(workerKey).toBe('diagnostic:test-document');
 				return Promise.resolve(mockWorker);
 			}
 		);
-		mocked(mockConfiguration).get.mockResolvedValue({
+		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
-		mocked(mockWorker).execute.mockImplementation((request) => {
+		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
 				options: {
@@ -143,20 +142,20 @@ describe('DiagnosticUpdater', () => {
 		document.fileName = 'test-document';
 
 		const mockWorker = new Worker();
-		mocked(mockWorkerPool).waitForAvailable.mockImplementation(
+		jest.mocked(mockWorkerPool).waitForAvailable.mockImplementation(
 			(workerKey) => {
 				expect(workerKey).toBe('diagnostic:test-document');
 				return Promise.resolve(mockWorker);
 			}
 		);
-		mocked(mockConfiguration).get.mockResolvedValue({
+		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: StandardType.PSR12,
 		});
-		mocked(mockWorker).execute.mockImplementation((request) => {
+		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
 				options: {
@@ -182,7 +181,7 @@ describe('DiagnosticUpdater', () => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
-		mocked(mockConfiguration).get.mockResolvedValue({
+		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [new RegExp('.*/file/.*')],
@@ -197,7 +196,7 @@ describe('DiagnosticUpdater', () => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';
 
-		mocked(mockConfiguration).get.mockResolvedValue({
+		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
