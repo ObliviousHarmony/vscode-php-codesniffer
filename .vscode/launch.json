@@ -7,6 +7,7 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
+            "sourceMaps": true,
             "outFiles": [
                 "${workspaceFolder}/extension.js",
                 "${workspaceFolder}/extension.js.map",
