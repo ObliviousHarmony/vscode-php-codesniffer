@@ -19,6 +19,13 @@
     "Programming Languages",
     "Linters"
   ],
+  "keywords": [
+    "php",
+    "linter",
+    "fixer",
+    "phpcs",
+    "phpcbf"
+  ],
   "engines": {
     "vscode": "^1.77.0"
   },
