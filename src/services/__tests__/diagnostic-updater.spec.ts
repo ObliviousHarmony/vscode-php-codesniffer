@@ -9,10 +9,7 @@ import {
 } from 'vscode';
 import { resolve as resolvePath } from 'path';
 import { CodeAction, CodeActionCollection } from '../../types';
-import {
-	Configuration,
-	LintAction,
-} from '../../services/configuration';
+import { Configuration, LintAction } from '../../services/configuration';
 import { WorkerPool } from '../../phpcs-report/worker-pool';
 import { DiagnosticUpdater } from '../diagnostic-updater';
 import {

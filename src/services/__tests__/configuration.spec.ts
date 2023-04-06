@@ -20,14 +20,14 @@ import {
  * The default configuration options to use in our tests.
  */
 type ConfigurationType = {
-	autoExecutable: boolean,
-	'exec.linux': string,
-	'exec.osx': string,
-	'exec.windows': string,
-	exclude: string[],
-	lintAction: LintAction,
-	standard: SpecialStandardOptions | string,
-	standardCustom: string,
+	autoExecutable: boolean;
+	'exec.linux': string;
+	'exec.osx': string;
+	'exec.windows': string;
+	exclude: string[];
+	lintAction: LintAction;
+	standard: SpecialStandardOptions | string;
+	standardCustom: string;
 
 	// Deprecated Options
 	executable: string | null,
@@ -244,14 +244,12 @@ describe('Configuration', () => {
 	describe('should parse `standard` option', () => {
 		it('disabled', async () => {
 			const mockConfiguration = {
-				get: jest.fn().mockImplementation(
-					getDefaultConfiguration()
-				),
+				get: jest.fn().mockImplementation(getDefaultConfiguration()),
 			};
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-	
+
 			const result = await configuration.get(mockDocument);
 
 			expect(workspace.getConfiguration).toHaveBeenCalledWith(
@@ -277,7 +275,7 @@ describe('Configuration', () => {
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-	
+
 			const result = await configuration.get(mockDocument);
 
 			expect(workspace.getConfiguration).toHaveBeenCalledWith(
@@ -304,7 +302,7 @@ describe('Configuration', () => {
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-	
+
 			const result = await configuration.get(mockDocument);
 
 			expect(workspace.getConfiguration).toHaveBeenCalledWith(
@@ -330,7 +328,7 @@ describe('Configuration', () => {
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-	
+
 			const result = await configuration.get(mockDocument);
 
 			expect(workspace.getConfiguration).toHaveBeenCalledWith(
@@ -359,12 +357,17 @@ describe('Configuration', () => {
 				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 					switch (uri.path) {
 						case 'test/file/phpcs.xml':
-							return Promise.resolve({ type: 0, ctime: 0, mtime: 0, size: 0 });
+							return Promise.resolve({
+								type: 0,
+								ctime: 0,
+								mtime: 0,
+								size: 0,
+							});
 					}
-	
+
 					throw new Error('Invalid path: ' + uri.path);
 				});
-				
+
 				const mockConfiguration = {
 					get: jest.fn().mockImplementation(
 						getDefaultConfiguration({
@@ -375,9 +378,9 @@ describe('Configuration', () => {
 				jest.mocked(workspace).getConfiguration.mockReturnValue(
 					mockConfiguration as never
 				);
-		
+
 				const result = await configuration.get(mockDocument);
-	
+
 				expect(workspace.getConfiguration).toHaveBeenCalledWith(
 					'phpCodeSniffer',
 					mockDocument
@@ -404,9 +407,14 @@ describe('Configuration', () => {
 							return Promise.reject(new FileSystemError(uri));
 
 						case 'test/.phpcs.xml':
-							return Promise.resolve({ type: 0, ctime: 0, mtime: 0, size: 0 });
+							return Promise.resolve({
+								type: 0,
+								ctime: 0,
+								mtime: 0,
+								size: 0,
+							});
 					}
-	
+
 					throw new Error('Invalid path: ' + uri.path);
 				});
 
@@ -420,9 +428,9 @@ describe('Configuration', () => {
 				jest.mocked(workspace).getConfiguration.mockReturnValue(
 					mockConfiguration as never
 				);
-		
+
 				const result = await configuration.get(mockDocument);
-	
+
 				expect(workspace.getConfiguration).toHaveBeenCalledWith(
 					'phpCodeSniffer',
 					mockDocument
@@ -471,7 +479,7 @@ describe('Configuration', () => {
 			const mockConfiguration = {
 				get: jest.fn().mockImplementation(
 					getDefaultConfiguration({
-						executable: 'test.override'
+						executable: 'test.override',
 					})
 				),
 			};

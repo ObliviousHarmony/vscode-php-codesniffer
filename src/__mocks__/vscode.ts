@@ -7,7 +7,7 @@ const uriToString = (uri: any): string => {
 		str += '#' + uri.fragment;
 	}
 	return str;
-}
+};
 const Uri: any = jest.fn().mockImplementation(() => {
 	const created = {
 		scheme: 'file',
@@ -21,8 +21,9 @@ const Uri: any = jest.fn().mockImplementation(() => {
 	return created;
 });
 
-Uri.joinPath = jest.fn().mockImplementation(
-	(uri: any, ...pathSegments: string[]) => {
+Uri.joinPath = jest
+	.fn()
+	.mockImplementation((uri: any, ...pathSegments: string[]) => {
 		const uriSegments = uri.path.split('/');
 
 		for (const seg of pathSegments) {
@@ -50,8 +51,7 @@ Uri.joinPath = jest.fn().mockImplementation(
 			toString: () => uriToString(created),
 		};
 		return created;
-	}
-);
+	});
 
 const MockTextDocument = jest.fn().mockImplementation(() => {
 	return {
