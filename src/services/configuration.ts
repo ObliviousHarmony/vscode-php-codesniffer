@@ -109,6 +109,16 @@ export interface DocumentConfiguration {
 type FolderTraversalCallback<T> = (folderUri: Uri) => Promise<T | false>;
 
 /**
+ * The valid filenames we look for when automatically searching for coding standards.
+ */
+export const AutomaticCodingStandardFilenames = [
+	'phpcs.xml',
+	'.phpcs.xml',
+	'phpcs.dist.xml',
+	'.phpcs.dist.xml',
+];
+
+/**
  * A class for reading our configuration.
  */
 export class Configuration {
@@ -361,9 +371,7 @@ export class Configuration {
 			cancellationToken
 		);
 		if (parsed === false) {
-			throw new Error(
-				'The extension failed to find a coding standard file.'
-			);
+			return null;
 		}
 
 		return parsed;
@@ -498,20 +506,13 @@ export class Configuration {
 	 * @param {Uri} folder The folder we're checking for a coding standard file.
 	 */
 	private async findCodingStandardFile(folder: Uri): Promise<string | false> {
-		// We should examine a few possible filenames.
-		const filenames = [
-			'phpcs.xml',
-			'.phpcs.xml',
-			'phpcs.dist.xml',
-			'.phpcs.dist.xml',
-		];
-
-		for (const filename of filenames) {
+		// Look for any of the valid coding standard filenames.
+		for (const filename of AutomaticCodingStandardFilenames) {
 			try {
 				// The stat() call will throw an error if the file could not be found.
 				const codingStandardPath = Uri.joinPath(folder, filename);
 				await this.workspace.fs.stat(codingStandardPath);
-	
+
 				return codingStandardPath.fsPath;
 			} catch (e) {
 				// Only errors from the filesystem are relevant.
