@@ -63,7 +63,7 @@ interface ParamsFromConfiguration {
 }
 
 /**
- * An interface descirinb the shape of a document's configuration.
+ * An interface describing the shape of a document's configuration.
  */
 export interface DocumentConfiguration {
 	/**
@@ -91,6 +91,11 @@ export interface DocumentConfiguration {
 	 */
 	standard: StandardType | string;
 }
+
+/**
+ * The type for the callback used when traversing workspace folders.
+ */
+type FolderTraversalCallback<T> = (folderUri: Uri) => Promise<T | false>;
 
 /**
  * A class for reading our configuration.
@@ -315,6 +320,44 @@ export class Configuration {
 	}
 
 	/**
+	 * Reads the configuration for a document from the filesystem and resolves it.
+	 *
+	 * @param {TextDocument} document The document to read.
+	 * @param {boolean} findExecutable Indicates whether or not we should perform an executable search.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
+	 */
+	private async readFilesystem(
+		document: TextDocument,
+		findExecutable: boolean,
+		cancellationToken?: CancellationToken
+	): Promise<ParamsFromFilesystem> {
+		// The workspace folder for the document is our default working directory.
+		const workspaceFolder = this.getWorkspaceFolder(document);
+
+		// Prepare the parameters that come from the filesystem.
+		const fsParams: ParamsFromFilesystem = {
+			workingDirectory: workspaceFolder.fsPath,
+		};
+
+		// When an executable is requested we should attempt to populate the params with one.
+		if (findExecutable) {
+			const executable = await this.traverseWorkspaceFolders(
+				document.uri,
+				workspaceFolder,
+				(uri) => this.findExecutableInFolder(uri),
+				cancellationToken
+			);
+
+			if (executable !== false) {
+				fsParams.workingDirectory = executable.workingDirectory;
+				fsParams.executable = executable.executable;
+			}
+		}
+
+		return fsParams;
+	}
+
+	/**
 	 * Fetches the workspace folder of a document or the folder immediately enclosing the file.
 	 *
 	 * @param {TextDocument} document The document to check.
@@ -334,63 +377,69 @@ export class Configuration {
 			return this.workspace.workspaceFolders[0].uri;
 		}
 
-		// When we can't infer a path just use the directory of the document.
+		// When we can't infer a path just use the folder of the document.
 		return Uri.joinPath(document.uri, '..');
 	}
 
 	/**
-	 * Attempts to find an executable by traversing from the document's directory to the workspace folder.
+	 * Traverses from the document's folder to the workspace folder, executing
+	 * a callback on each Uri until the caller finds what they are looking for.
 	 *
-	 * @param {Uri} documentUri The URI of the document to find an executable for.
-	 * @param {Uri} workspaceFolder The URI of the workspace folder for the document.
+	 * @param {Uri} documentUri The Uri of the document we are traversing from.
+	 * @param {Uri} workspaceFolder The workspace folder that is the highest we should traverse.
+	 * @param {FolderTraversalCallback} callback The callback to execute on each Uri in the traversal.
 	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
-	private async findExecutable(
+	private async traverseWorkspaceFolders<T>(
 		documentUri: Uri,
 		workspaceFolder: Uri,
+		callback: FolderTraversalCallback<T>,
 		cancellationToken?: CancellationToken
-	): Promise<ExecutablePath | null> {
+	): Promise<T | false> {
 		// Where we start the traversal will depend on the scheme of the document.
-		let directory: Uri;
+		let folder: Uri;
 		switch (documentUri.scheme) {
 			// Untitled files have no path and should just check the workspace folder.
 			case 'untitled':
-				directory = workspaceFolder;
+				folder = workspaceFolder;
 				break;
 
-			// Real files will traverse from their directory to the workspace folder.
+			// Real files will traverse from their folder to the workspace folder.
 			case 'file':
-				directory = Uri.joinPath(documentUri, '..');
+				folder = Uri.joinPath(documentUri, '..');
 				break;
 
 			// Since we can't execute the binary in any other scheme there's nothing to do.
 			default:
-				return null;
+				return false;
 		}
 
-		// We're going to traverse from the file's directory to the workspace
-		// folder looking for an executable that can be used in the worker.
-		while (directory.path !== '/') {
+		// Only traverse as far as the workspace folder. We don't
+		// want to accidentally check folders outside of it.
+		while (folder.path !== '/') {
 			// When the request is cancelled, we don't want to keep looking.
 			if (cancellationToken?.isCancellationRequested) {
 				throw new CancellationError();
 			}
 
-			const found = await this.findExecutableInDirectory(directory);
-			if (found) {
+			// Let the caller decide whether or not the given
+			// Uri is what they're looking for and return
+			// whatever the caller wants to consume.
+			const found = await callback(folder);
+			if (found !== false) {
 				return found;
 			}
 
 			// Stop once we reach the workspace folder.
-			if (directory.toString() === workspaceFolder.toString()) {
+			if (folder.toString() === workspaceFolder.toString()) {
 				break;
 			}
 
-			// Move to the parent directory and check again.
-			directory = Uri.joinPath(directory, '..');
+			// Move to the parent folder and check again.
+			folder = Uri.joinPath(folder, '..');
 		}
 
-		return null;
+		return false;
 	}
 
 	/**
@@ -398,13 +447,18 @@ export class Configuration {
 	 *
 	 * @param {Uri} directory The directory we're checking for an executable in.
 	 */
-	private async findExecutableInDirectory(
-		directory: Uri
-	): Promise<ExecutablePath | null> {
+	/**
+	 * Attempts to find an executable in the given folder and returns the path to it if found.
+	 *
+	 * @param {Uri} folder The folder we're checking for an executable in.
+	 */
+	private async findExecutableInFolder(
+		folder: Uri
+	): Promise<ExecutablePath | false> {
 		try {
-			// We should be aware of custom vendor directories so that
+			// We should be aware of custom vendor folders so that
 			// we can find the executable in the correct location.
-			const composerPath = Uri.joinPath(directory, 'composer.json');
+			const composerPath = Uri.joinPath(folder, 'composer.json');
 
 			const composerFile = JSON.parse(
 				this.textDecoder.decode(
@@ -423,7 +477,7 @@ export class Configuration {
 
 			// Make sure to find a platform-specific executable.
 			const phpcsPath = Uri.joinPath(
-				directory,
+				folder,
 				vendorDir,
 				'bin',
 				process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
@@ -434,7 +488,7 @@ export class Configuration {
 
 			// The lack of an error indicates that the file exists.
 			return {
-				workingDirectory: directory.fsPath,
+				workingDirectory: folder.fsPath,
 				executable: phpcsPath.fsPath,
 			};
 		} catch (e) {
@@ -444,6 +498,6 @@ export class Configuration {
 			}
 		}
 
-		return null;
+		return false;
 	}
 }
