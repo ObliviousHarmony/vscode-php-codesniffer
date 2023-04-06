@@ -22,6 +22,10 @@ This option will prevent the extension from linting any documents.
 
 Allow PHPCS to decide what standard should apply to the document. It will either use the default standard if one is configured, otherwise, it will try to find one in the workspace root and all parent directories.
 
+#### `Automatic`
+
+When selected, this option will cause the extension to search for an applicable coding standard file (`.phpcs.xml`, `phpcs.xml`, `.phpcs.xml.dist`, `phpcs.xml.dist`). The extension starts in the document's directory and traverses through parent directories until it reaches the workspace root. If the extension fails to find a file it will do nothing and output an error.
+
 #### `Custom`
 
 This option will use the content of the `phpCodeSniffer.standardCustom` input as the standard. This can be the name of a custom ruleset, or, a path to a custom standard file. If a relative path is given it will be based

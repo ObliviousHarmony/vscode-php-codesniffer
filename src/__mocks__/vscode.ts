@@ -1,3 +1,13 @@
+const uriToString = (uri: any): string => {
+	let str = uri.scheme + '://' + uri.path;
+	if (uri.query) {
+		str += '?' + uri.query;
+	}
+	if (uri.fragment) {
+		str += '#' + uri.fragment;
+	}
+	return str;
+}
 const Uri: any = jest.fn().mockImplementation(() => {
 	const created = {
 		scheme: 'file',
@@ -6,20 +16,42 @@ const Uri: any = jest.fn().mockImplementation(() => {
 		query: '',
 		fragment: '',
 		fsPath: 'test/file/path.php',
-		toString: (): string => {
-			let str = created.scheme + '://' + created.path;
-			if (created.query) {
-				str += '?' + created.query;
-			}
-			if (created.fragment) {
-				str += '#' + created.fragment;
-			}
-			return str;
-		},
+		toString: () => uriToString(created),
 	};
 	return created;
 });
-Uri.joinPath = jest.fn();
+
+Uri.joinPath = jest.fn().mockImplementation(
+	(uri: any, ...pathSegments: string[]) => {
+		const uriSegments = uri.path.split('/');
+
+		for (const seg of pathSegments) {
+			if (seg === '.') {
+				continue;
+			}
+
+			if (seg === '..') {
+				uriSegments.pop();
+				continue;
+			}
+
+			uriSegments.push(seg);
+		}
+
+		const path = uriSegments.join('/');
+
+		const created = {
+			scheme: uri.scheme,
+			authority: '',
+			fragment: '',
+			path: path,
+			query: '',
+			fsPath: path,
+			toString: () => uriToString(created),
+		};
+		return created;
+	}
+);
 
 const MockTextDocument = jest.fn().mockImplementation(() => {
 	return {

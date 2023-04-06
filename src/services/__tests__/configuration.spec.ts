@@ -1,7 +1,6 @@
 import {
 	TextDocument,
 	workspace,
-	Uri as vsCodeUri,
 	FileSystemError,
 	CancellationError,
 } from 'vscode';
@@ -11,41 +10,71 @@ import {
 	Uri,
 } from '../../__mocks__/vscode';
 import { TextEncoder } from 'util';
-import { Configuration, LintAction, StandardType } from '../configuration';
+import {
+	Configuration,
+	LintAction,
+	SpecialStandardOptions,
+} from '../configuration';
+
+/**
+ * The default configuration options to use in our tests.
+ */
+type ConfigurationType = {
+	autoExecutable: boolean,
+	'exec.linux': string,
+	'exec.osx': string,
+	'exec.windows': string,
+	exclude: string[],
+	lintAction: LintAction,
+	standard: SpecialStandardOptions | string,
+	standardCustom: string,
+
+	// Deprecated Options
+	executable: string | null,
+	ignorePatterns: string[] | null,
+};
+
+/**
+ * A convenience function for getting the configuration options in the workspace configuration.
+ */
+const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
+	return (key: keyof ConfigurationType) => {
+		if (overrides && key in overrides) {
+			return overrides[key];
+		}
+
+		switch (key) {
+			case 'autoExecutable':
+				return false;
+			case 'exec.linux':
+			case 'exec.osx':
+			case 'exec.windows':
+				return 'test.platform';
+			case 'exclude':
+				return [];
+			case 'lintAction':
+				return LintAction.Change;
+			case 'standard':
+				return SpecialStandardOptions.Disabled;
+			case 'standardCustom':
+				return '';
+
+			// Deprecated Settings
+			case 'executable':
+			case 'ignorePatterns':
+				return null;
+		}
+
+		throw new Error(
+			'An unexpected configuration key of ' + key + ' was received.'
+		);
+	};
+};
 
 describe('Configuration', () => {
 	let mockDocument: TextDocument;
 	let configuration: Configuration;
 	let textEncoder: TextEncoder;
-
-	beforeAll(() => {
-		// Create a mock implementation that can create joined paths.
-		jest.mocked(Uri.joinPath).mockImplementation(
-			(uri: vsCodeUri, ...pathSegments: string[]) => {
-				const uriSegments = uri.path.split('/');
-
-				for (const seg of pathSegments) {
-					if (seg === '.') {
-						continue;
-					}
-
-					if (seg === '..') {
-						uriSegments.pop();
-						continue;
-					}
-
-					uriSegments.push(seg);
-				}
-
-				const path = uriSegments.join('/');
-				return {
-					path: path,
-					fsPath: path,
-					toString: () => path,
-				};
-			}
-		);
-	});
 
 	beforeEach(() => {
 		mockDocument = new MockTextDocument();
@@ -54,41 +83,23 @@ describe('Configuration', () => {
 	});
 
 	afterEach(() => {
-		jest.mocked(workspace.getConfiguration).mockClear();
-		jest.mocked(workspace.getWorkspaceFolder).mockClear();
+		jest.mocked(workspace).getWorkspaceFolder.mockReset();
+		jest.mocked(workspace).getConfiguration.mockReset();
+		jest.mocked(workspace).fs.readFile.mockReset();
+		jest.mocked(workspace).fs.stat.mockReset();
 	});
 
 	it('should read and cache configuration for document', async () => {
-		const mockConfiguration = { get: jest.fn() };
+		const mockConfiguration = {
+			get: jest.fn().mockImplementation(
+				getDefaultConfiguration({
+					exclude: ['test/{test|test-test}/*.php'],
+				})
+			),
+		};
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
-
-		mockConfiguration.get.mockImplementation((key) => {
-			switch (key) {
-				case 'autoExecutable':
-					return false;
-				case 'exec.linux':
-				case 'exec.osx':
-				case 'exec.windows':
-					return 'test.platform';
-				case 'exclude':
-					return ['test/{test|test-test}/*.php'];
-				case 'lintAction':
-					return LintAction.Change;
-				case 'standard':
-					return StandardType.Disabled;
-
-				// Deprecated options.
-				case 'executable':
-				case 'ignorePatterns':
-					return null;
-			}
-
-			fail(
-				'An unexpected configuration key of ' + key + ' was received.'
-			);
-		});
 
 		const result = await configuration.get(mockDocument);
 
@@ -100,7 +111,7 @@ describe('Configuration', () => {
 			workingDirectory: 'test/file',
 			executable: 'test.platform',
 			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
-			standard: StandardType.Disabled,
+			standard: null,
 		});
 
 		// Make sure that a subsequent fetch loads a cached instance.
@@ -111,7 +122,13 @@ describe('Configuration', () => {
 	});
 
 	it('should read filesystem for executable when enabled', async () => {
-		const mockConfiguration = { get: jest.fn() };
+		const mockConfiguration = {
+			get: jest.fn().mockImplementation(
+				getDefaultConfiguration({
+					autoExecutable: true,
+				})
+			),
+		};
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
@@ -124,7 +141,7 @@ describe('Configuration', () => {
 		} as never);
 
 		// We will traverse from the file directory up.
-		jest.mocked(workspace.fs.readFile).mockImplementation((uri) => {
+		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
 					return Promise.reject(new FileSystemError(uri));
@@ -143,7 +160,7 @@ describe('Configuration', () => {
 			throw new Error('Invalid path: ' + uri.path);
 		});
 
-		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
+		jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 			switch (uri.path) {
 				case 'test/newvendor/bin/phpcs.bat':
 				case 'test/newvendor/bin/phpcs': {
@@ -155,32 +172,6 @@ describe('Configuration', () => {
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
-		});
-
-		mockConfiguration.get.mockImplementation((key) => {
-			switch (key) {
-				case 'autoExecutable':
-					return true;
-				case 'exec.linux':
-				case 'exec.osx':
-				case 'exec.windows':
-					return 'test.platform';
-				case 'exclude':
-					return [];
-				case 'lintAction':
-					return LintAction.Change;
-				case 'standard':
-					return StandardType.Disabled;
-
-				// Deprecated settings.
-				case 'executable':
-				case 'ignorePatterns':
-					return null;
-			}
-
-			fail(
-				'An unexpected configuration key of ' + key + ' was received.'
-			);
 		});
 
 		const result = await configuration.get(mockDocument);
@@ -196,7 +187,7 @@ describe('Configuration', () => {
 					? 'test/newvendor/bin/phpcs.bat'
 					: 'test/newvendor/bin/phpcs',
 			exclude: [],
-			standard: StandardType.Disabled,
+			standard: null,
 		});
 
 		// Make sure that a subsequent fetch loads a cached instance.
@@ -206,10 +197,14 @@ describe('Configuration', () => {
 		expect(cached).toMatchObject(result);
 	});
 
-	it('should support cancellation', () => {
-		const cancellationToken = new MockCancellationToken();
-
-		const mockConfiguration = { get: jest.fn() };
+	it('should fall back when executable cannot be read from filesystem', async () => {
+		const mockConfiguration = {
+			get: jest.fn().mockImplementation(
+				getDefaultConfiguration({
+					autoExecutable: true,
+				})
+			),
+		};
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
@@ -221,65 +216,247 @@ describe('Configuration', () => {
 			uri: workspaceUri,
 		} as never);
 
-		// We will traverse from the file directory up.
-		jest.mocked(workspace.fs.readFile).mockImplementation((uri) => {
-			switch (uri.path) {
-				case 'test/file/composer.json':
-					return Promise.reject(new FileSystemError(uri));
-				case 'test/composer.json':
-					return Promise.resolve(
-						textEncoder.encode(
-							JSON.stringify({
-								config: {
-									'vendor-dir': 'newvendor',
-								},
-							})
-						)
-					);
-			}
-
-			throw new Error('Invalid path: ' + uri.path);
+		// We will never find the directory we are looking for
+		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
+			return Promise.reject(new FileSystemError(uri));
 		});
 
-		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
-			switch (uri.path) {
-				case 'test/newvendor/bin/phpcs.bat':
-				case 'test/newvendor/bin/phpcs': {
-					const ret = new Uri();
-					ret.path = 'test';
-					ret.fsPath = 'test';
-					return Promise.resolve(ret);
-				}
-			}
+		const result = await configuration.get(mockDocument);
 
-			throw new Error('Invalid path: ' + uri.path);
+		expect(workspace.getConfiguration).toHaveBeenCalledWith(
+			'phpCodeSniffer',
+			mockDocument
+		);
+		expect(result).toMatchObject({
+			workingDirectory: 'test',
+			executable: 'test.platform',
+			exclude: [],
+			standard: null,
 		});
 
-		mockConfiguration.get.mockImplementation((key) => {
-			switch (key) {
-				case 'autoExecutable':
-					return true;
-				case 'exec.linux':
-				case 'exec.osx':
-				case 'exec.windows':
-					return 'test.platform';
-				case 'exclude':
-					return ['test/{test|test-test}/*.php'];
-				case 'lintAction':
-					return LintAction.Change;
-				case 'standard':
-					return StandardType.Disabled;
+		// Make sure that a subsequent fetch loads a cached instance.
+		const cached = await configuration.get(mockDocument);
 
-				// Deprecated settings.
-				case 'executable':
-				case 'ignorePatterns':
-					return null;
-			}
+		expect(workspace.getConfiguration).toHaveBeenCalledTimes(1);
+		expect(cached).toMatchObject(result);
+	});
 
-			fail(
-				'An unexpected configuration key of ' + key + ' was received.'
+	describe('should parse `standard` option', () => {
+		it('disabled', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration()
+				),
+			};
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
 			);
+	
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test/file',
+				executable: 'test.platform',
+				exclude: [],
+				standard: null,
+			});
 		});
+
+		it('default', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration({
+						standard: SpecialStandardOptions.Default,
+					})
+				),
+			};
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+	
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test/file',
+				executable: 'test.platform',
+				exclude: [],
+				standard: '',
+			});
+		});
+
+		it('custom', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration({
+						standard: SpecialStandardOptions.Custom,
+						standardCustom: 'test-custom',
+					})
+				),
+			};
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+	
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test/file',
+				executable: 'test.platform',
+				exclude: [],
+				standard: 'test-custom',
+			});
+		});
+
+		it('literal', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration({
+						standard: 'LITERAL',
+					})
+				),
+			};
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+	
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test/file',
+				executable: 'test.platform',
+				exclude: [],
+				standard: 'LITERAL',
+			});
+		});
+
+		describe('automatic', () => {
+			beforeEach(() => {
+				const workspaceUri = new Uri();
+				workspaceUri.path = 'test';
+				workspaceUri.fsPath = 'test';
+				jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
+					uri: workspaceUri,
+				} as never);
+			});
+
+			it('document directory', async () => {
+				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
+					switch (uri.path) {
+						case 'test/file/phpcs.xml':
+							return Promise.resolve({ type: 0, ctime: 0, mtime: 0, size: 0 });
+					}
+	
+					throw new Error('Invalid path: ' + uri.path);
+				});
+				
+				const mockConfiguration = {
+					get: jest.fn().mockImplementation(
+						getDefaultConfiguration({
+							standard: SpecialStandardOptions.Automatic,
+						})
+					),
+				};
+				jest.mocked(workspace).getConfiguration.mockReturnValue(
+					mockConfiguration as never
+				);
+		
+				const result = await configuration.get(mockDocument);
+	
+				expect(workspace.getConfiguration).toHaveBeenCalledWith(
+					'phpCodeSniffer',
+					mockDocument
+				);
+				expect(result).toMatchObject({
+					workingDirectory: 'test',
+					executable: 'test.platform',
+					exclude: [],
+					standard: 'test/file/phpcs.xml',
+				});
+			});
+
+			it('parent directory', async () => {
+				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
+					switch (uri.path) {
+						case 'test/file/phpcs.xml':
+						case 'test/file/.phpcs.xml':
+						case 'test/file/phpcs.dist.xml':
+						case 'test/file/.phpcs.dist.xml':
+							return Promise.reject(new FileSystemError(uri));
+
+						// Ignore the first filename to also test the other possible filenames.
+						case 'test/phpcs.xml':
+							return Promise.reject(new FileSystemError(uri));
+
+						case 'test/.phpcs.xml':
+							return Promise.resolve({ type: 0, ctime: 0, mtime: 0, size: 0 });
+					}
+	
+					throw new Error('Invalid path: ' + uri.path);
+				});
+
+				const mockConfiguration = {
+					get: jest.fn().mockImplementation(
+						getDefaultConfiguration({
+							standard: SpecialStandardOptions.Automatic,
+						})
+					),
+				};
+				jest.mocked(workspace).getConfiguration.mockReturnValue(
+					mockConfiguration as never
+				);
+		
+				const result = await configuration.get(mockDocument);
+	
+				expect(workspace.getConfiguration).toHaveBeenCalledWith(
+					'phpCodeSniffer',
+					mockDocument
+				);
+				expect(result).toMatchObject({
+					workingDirectory: 'test',
+					executable: 'test.platform',
+					exclude: [],
+					standard: 'test/.phpcs.xml',
+				});
+			});
+		});
+	});
+
+	it('should support cancellation', () => {
+		const cancellationToken = new MockCancellationToken();
+
+		const mockConfiguration = {
+			get: jest.fn().mockImplementation(
+				getDefaultConfiguration({
+					autoExecutable: true,
+				})
+			),
+		};
+		jest.mocked(workspace).getConfiguration.mockReturnValue(
+			mockConfiguration as never
+		);
+
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test';
+		workspaceUri.fsPath = 'test';
+		jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
+			uri: workspaceUri,
+		} as never);
 
 		const promise = configuration.get(mockDocument, cancellationToken);
 
@@ -289,41 +466,18 @@ describe('Configuration', () => {
 		return expect(promise).rejects.toMatchObject(new CancellationError());
 	});
 
-	describe('deprecated options', () => {
-		it('should handle "executable" deprecation', async () => {
-			const mockConfiguration = { get: jest.fn() };
+	describe('should still handle deprecated options', () => {
+		it('executable', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration({
+						executable: 'test.override'
+					})
+				),
+			};
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-
-			mockConfiguration.get.mockImplementation((key) => {
-				switch (key) {
-					case 'autoExecutable':
-						return false;
-					case 'exec.linux':
-					case 'exec.osx':
-					case 'exec.windows':
-						return 'test.platform';
-					case 'exclude':
-						return [];
-					case 'lintAction':
-						return LintAction.Change;
-					case 'standard':
-						return StandardType.Disabled;
-
-					// Deprecated options.
-					case 'executable':
-						return 'test.exec';
-					case 'ignorePatterns':
-						return null;
-				}
-
-				fail(
-					'An unexpected configuration key of ' +
-						key +
-						' was received.'
-				);
-			});
 
 			const result = await configuration.get(mockDocument);
 
@@ -332,47 +486,25 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
-				executable: 'test.exec',
+				workingDirectory: 'test/file',
+				executable: 'test.override',
 				exclude: [],
-				standard: StandardType.Disabled,
+				standard: null,
 			});
 		});
 
-		it('should handle "ignorePatterns" deprecation', async () => {
-			const mockConfiguration = { get: jest.fn() };
+		it('ignorePatterns', async () => {
+			const mockConfiguration = {
+				get: jest.fn().mockImplementation(
+					getDefaultConfiguration({
+						exclude: ['test/{test|test-test}/*.php'],
+						ignorePatterns: ['test'],
+					})
+				),
+			};
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
 				mockConfiguration as never
 			);
-
-			mockConfiguration.get.mockImplementation((key) => {
-				switch (key) {
-					case 'autoExecutable':
-						return false;
-					case 'exec.linux':
-					case 'exec.osx':
-					case 'exec.windows':
-						return 'test.platform';
-					case 'exclude':
-						return ['test/{test|test-test}/*.php'];
-					case 'lintAction':
-						return LintAction.Change;
-					case 'standard':
-						return StandardType.Disabled;
-
-					// Deprecated options.
-					case 'executable':
-						return null;
-					case 'ignorePatterns':
-						return ['test'];
-				}
-
-				fail(
-					'An unexpected configuration key of ' +
-						key +
-						' was received.'
-				);
-			});
 
 			const result = await configuration.get(mockDocument);
 
@@ -381,13 +513,13 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
+				workingDirectory: 'test/file',
 				executable: 'test.platform',
 				exclude: [
 					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,
 					/test/,
 				],
-				standard: StandardType.Disabled,
+				standard: null,
 			});
 		});
 	});

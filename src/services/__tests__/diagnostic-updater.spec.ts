@@ -12,7 +12,6 @@ import { CodeAction, CodeActionCollection } from '../../types';
 import {
 	Configuration,
 	LintAction,
-	StandardType,
 } from '../../services/configuration';
 import { WorkerPool } from '../../phpcs-report/worker-pool';
 import { DiagnosticUpdater } from '../diagnostic-updater';
@@ -96,7 +95,7 @@ describe('DiagnosticUpdater', () => {
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
-			standard: StandardType.PSR12,
+			standard: 'PSR12',
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -104,7 +103,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
-					standard: StandardType.PSR12,
+					standard: 'PSR12',
 				},
 			});
 
@@ -153,7 +152,7 @@ describe('DiagnosticUpdater', () => {
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
-			standard: StandardType.PSR12,
+			standard: 'PSR12',
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -161,7 +160,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
-					standard: StandardType.PSR12,
+					standard: 'PSR12',
 				},
 			});
 
@@ -186,7 +185,7 @@ describe('DiagnosticUpdater', () => {
 			executable: 'phpcs-test',
 			exclude: [new RegExp('.*/file/.*')],
 			lintAction: LintAction.Change,
-			standard: StandardType.PSR12,
+			standard: 'PSR12',
 		});
 
 		return diagnosticUpdater.update(document, LintAction.Force);
@@ -201,7 +200,7 @@ describe('DiagnosticUpdater', () => {
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Save,
-			standard: StandardType.PSR12,
+			standard: 'PSR12',
 		});
 
 		return diagnosticUpdater.update(document, LintAction.Change);

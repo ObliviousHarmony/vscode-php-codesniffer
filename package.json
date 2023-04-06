@@ -96,6 +96,7 @@
           "enum": [
             "Disabled",
             "Default",
+            "Automatic",
             "PEAR",
             "MySource",
             "Squiz",
@@ -106,6 +107,7 @@
           "enumDescriptions": [
             "Disables the PHP_CodeSniffer extension's linting.",
             "Allows PHPCS to decide the coding standard.",
+            "Searches for a coding standard configuration file in the current document's directory and parent directories.",
             "Uses the PEAR coding standard.",
             "Uses the MySource coding standard.",
             "Uses the Squiz coding standard.",

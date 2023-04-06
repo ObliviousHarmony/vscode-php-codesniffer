@@ -11,16 +11,27 @@ import {
 import { UriMap } from '../common/uri-map';
 
 /**
- * An enum describing the values in the `phpcsCodeSniffer.standard` configuration.
+ * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
  */
-export enum StandardType {
+export enum SpecialStandardOptions {
+	/**
+	 * Disable linting for the document entirely.
+	 */
 	Disabled = 'Disabled',
+
+	/**
+	 * Skip passing a `--standard` to PHPCS and let it decide what standard to use.
+	 */
 	Default = 'Default',
-	PEAR = 'PEAR',
-	MySource = 'MySource',
-	Squiz = 'Squiz',
-	PSR1 = 'PSR1',
-	PSR12 = 'PSR12',
+
+	/**
+	 * Search for a custom standard file in the document's folder and parent folders.
+	 */
+	Automatic = 'Automatic',
+
+	/**
+	 * Use the contents of the `phpCodeSniffer.standardCustom` configuration.
+	 */
 	Custom = 'Custom',
 }
 
@@ -59,7 +70,7 @@ interface ParamsFromConfiguration {
 	executable: string;
 	exclude: RegExp[];
 	lintAction: LintAction;
-	standard: string;
+	standard: string | null;
 }
 
 /**
@@ -89,7 +100,7 @@ export interface DocumentConfiguration {
 	/**
 	 * The standard we should use when executing reports.
 	 */
-	standard: StandardType | string;
+	standard: string | null;
 }
 
 /**
@@ -143,7 +154,10 @@ export class Configuration {
 		}
 
 		// Read the configuration and filesystem to build our document's configuration.
-		const fromConfig = this.readConfiguration(document);
+		const fromConfig = await this.readConfiguration(
+			document,
+			cancellationToken
+		);
 		const fromFilesystem = await this.readFilesystem(
 			document,
 			fromConfig.autoExecutable,
@@ -178,49 +192,15 @@ export class Configuration {
 	}
 
 	/**
-	 * Reads the configuration for a document from the filesystem and resolves it.
-	 *
-	 * @param {TextDocument} document The document to read.
-	 * @param {boolean} findExecutable Indicates whether or not we should perform an executable search.
-	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
-	 */
-	private async readFilesystem(
-		document: TextDocument,
-		findExecutable: boolean,
-		cancellationToken?: CancellationToken
-	): Promise<ParamsFromFilesystem> {
-		// The workspace folder for the document is our default working directory.
-		const workspaceFolder = this.getWorkspaceFolder(document);
-
-		// Prepare the parameters that come from the filesystem.
-		const fsParams: ParamsFromFilesystem = {
-			workingDirectory: workspaceFolder.fsPath,
-		};
-
-		// When an executable is requested we should attempt to populate the params with one.
-		if (findExecutable) {
-			const executable = findExecutable
-				? await this.findExecutable(
-						document.uri,
-						workspaceFolder,
-						cancellationToken
-				  )
-				: null;
-			if (executable) {
-				fsParams.workingDirectory = executable.workingDirectory;
-				fsParams.executable = executable.executable;
-			}
-		}
-
-		return fsParams;
-	}
-
-	/**
 	 * Reads the configuration for a document and returns the relevant data.
 	 *
 	 * @param {TextDocument} document The document to read.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
-	private readConfiguration(document: TextDocument): ParamsFromConfiguration {
+	private async readConfiguration(
+		document: TextDocument,
+		cancellationToken?: CancellationToken
+	): Promise<ParamsFromConfiguration> {
 		const config = this.workspace.getConfiguration(
 			'phpCodeSniffer',
 			document
@@ -302,13 +282,22 @@ export class Configuration {
 			);
 		}
 
-		let standard = config.get<string>('standard');
-		if (standard === StandardType.Custom) {
-			standard = config.get<string>('standardCustom');
+		// We're going to parse the standard so that outside of this method
+		// we have a standard that can be easily passed to the worker.
+		const rawStandard = config.get<SpecialStandardOptions | string>(
+			'standard'
+		);
+		if (rawStandard === undefined) {
+			throw new Error(
+				'The extension has an invalid `phpCodeSniffer.standard` configuration.'
+			);
 		}
-		if (!standard) {
-			standard = StandardType.Disabled;
-		}
+		const standard = await this.parseStandard(
+			document,
+			rawStandard,
+			config.get<string>('standardCustom'),
+			cancellationToken
+		);
 
 		return {
 			autoExecutable,
@@ -317,6 +306,67 @@ export class Configuration {
 			lintAction,
 			standard,
 		};
+	}
+
+	/**
+	 * Parses the coding standard configuration options into a single string that
+	 * can be readily given to the worker without any other parsing.
+	 *
+	 * @param {TextDocument} document The document to read.
+	 * @param {SpecialStandardOptions|string} standard The special standard option or string literal to use.
+	 * @param {string} [customStandard] The string to use with the `Custom` special standard option.
+	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
+	 */
+	private async parseStandard(
+		document: TextDocument,
+		standard: SpecialStandardOptions | string,
+		customStandard?: string,
+		cancellationToken?: CancellationToken
+	): Promise<string | null> {
+		// There are some special standard options that require some parsing.
+		switch (standard) {
+			// Linting will not be performed when the standard is null.
+			case SpecialStandardOptions.Disabled:
+				return null;
+
+			// No standard is passed when it is an empty string.
+			case SpecialStandardOptions.Default:
+				return '';
+
+			case SpecialStandardOptions.Custom:
+				if (!customStandard) {
+					throw new Error(
+						'The extension has an empty `phpCodeSniffer.standardCustom` configuration.'
+					);
+				}
+
+				return customStandard;
+
+			// Use the automatic standard discovery below when desired.
+			case SpecialStandardOptions.Automatic:
+				break;
+
+			// Any other standard options are just string literals to pass to the linter.
+			default:
+				return standard;
+		}
+
+		// We are only going to traverse as high as the workspace folder.
+		const workspaceFolder = this.getWorkspaceFolder(document);
+
+		const parsed = await this.traverseWorkspaceFolders(
+			document.uri,
+			workspaceFolder,
+			(uri) => this.findCodingStandardFile(uri),
+			cancellationToken
+		);
+		if (parsed === false) {
+			throw new Error(
+				'The extension failed to find a coding standard file.'
+			);
+		}
+
+		return parsed;
 	}
 
 	/**
@@ -443,10 +493,37 @@ export class Configuration {
 	}
 
 	/**
-	 * Attempts to find an executable in the given directory and returns the path to it if found.
+	 * Attempts to find a coding standard file in the given folder and returns the path to it if found.
 	 *
-	 * @param {Uri} directory The directory we're checking for an executable in.
+	 * @param {Uri} folder The folder we're checking for a coding standard file.
 	 */
+	private async findCodingStandardFile(folder: Uri): Promise<string | false> {
+		// We should examine a few possible filenames.
+		const filenames = [
+			'phpcs.xml',
+			'.phpcs.xml',
+			'phpcs.dist.xml',
+			'.phpcs.dist.xml',
+		];
+
+		for (const filename of filenames) {
+			try {
+				// The stat() call will throw an error if the file could not be found.
+				const codingStandardPath = Uri.joinPath(folder, filename);
+				await this.workspace.fs.stat(codingStandardPath);
+	
+				return codingStandardPath.fsPath;
+			} catch (e) {
+				// Only errors from the filesystem are relevant.
+				if (!(e instanceof FileSystemError)) {
+					throw e;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Attempts to find an executable in the given folder and returns the path to it if found.
 	 *
