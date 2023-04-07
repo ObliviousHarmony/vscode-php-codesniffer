@@ -231,12 +231,30 @@ export class Configuration {
 			);
 		}
 
-		const executable = config.get<string>('executable');
+		// Use a platform-specific executable setting.
+		let executableSetting: string;
+		switch (process.platform) {
+			case 'win32':
+				executableSetting = 'executable.windows';
+				break;
+			case 'darwin':
+				executableSetting = 'executable.osx';
+				break;
+			default:
+				executableSetting = 'executable.linux';
+				break;
+		}
+		const executable = config.get<string>(executableSetting);
 		if (executable === undefined) {
 			throw new Error(
-				'The extension has an invalid `phpCodeSniffer.executable` configuration.'
+				'The extension has an invalid `' +
+					executableSetting +
+					'` configuration.'
 			);
 		}
+
+		// Support the deprecated `executable` setting that should override the platform-specific one.
+		const deprecatedExecutable = config.get<string>('executable');
 
 		let rawPatterns = config.get<string[]>('exclude');
 		if (!Array.isArray(rawPatterns)) {
@@ -286,7 +304,7 @@ export class Configuration {
 
 		return {
 			autoExecutable,
-			executable,
+			executable: deprecatedExecutable ?? executable,
 			exclude,
 			lintAction,
 			standard,
@@ -400,8 +418,15 @@ export class Configuration {
 				vendorDir = composerFile.config['vendor-dir'];
 			}
 
+			// Make sure to find a platform-specific executable.
+			const phpcsPath = Uri.joinPath(
+				directory,
+				vendorDir,
+				'bin',
+				process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
+			);
+
 			// The stat() call will throw an error if the file could not be found.
-			const phpcsPath = Uri.joinPath(directory, vendorDir + '/bin/phpcs');
 			await this.workspace.fs.stat(phpcsPath);
 
 			// The lack of an error indicates that the file exists.

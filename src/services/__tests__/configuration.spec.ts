@@ -66,8 +66,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return false;
-				case 'executable':
-					return 'test.exec';
+				case 'executable.linux':
+				case 'executable.osx':
+				case 'executable.windows':
+					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
@@ -76,6 +78,7 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated options.
+				case 'executable':
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -93,7 +96,7 @@ describe('Configuration', () => {
 		);
 		expect(result).toMatchObject({
 			workingDirectory: 'test/file',
-			executable: 'test.exec',
+			executable: 'test.platform',
 			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
 			standard: StandardType.Disabled,
 		});
@@ -154,8 +157,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable':
-					return 'test.exec';
+				case 'executable.linux':
+				case 'executable.osx':
+				case 'executable.windows':
+					return 'test.platform';
 				case 'exclude':
 					return [];
 				case 'lintAction':
@@ -164,6 +169,7 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated settings.
+				case 'executable':
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -244,8 +250,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable':
-					return 'test.exec';
+				case 'executable.linux':
+				case 'executable.osx':
+				case 'executable.windows':
+					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
@@ -254,6 +262,8 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated settings.
+				case 'executable':
+					return undefined;
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -272,6 +282,55 @@ describe('Configuration', () => {
 	});
 
 	describe('deprecated options', () => {
+		it('should handle "executable" deprecation', async () => {
+			const mockConfiguration = { get: jest.fn() };
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+
+			mockConfiguration.get.mockImplementation((key) => {
+				switch (key) {
+					case 'autoExecutable':
+						return false;
+					case 'executable.linux':
+					case 'executable.osx':
+					case 'executable.windows':
+						return 'test.platform';
+					case 'exclude':
+						return [];
+					case 'lintAction':
+						return LintAction.Change;
+					case 'standard':
+						return StandardType.Disabled;
+
+					// Deprecated options.
+					case 'executable':
+						return 'test.exec';
+					case 'ignorePatterns':
+						return undefined;
+				}
+
+				fail(
+					'An unexpected configuration key of ' +
+						key +
+						' was received.'
+				);
+			});
+
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test',
+				executable: 'test.exec',
+				exclude: [],
+				standard: StandardType.Disabled,
+			});
+		});
+
 		it('should handle "ignorePatterns" deprecation', async () => {
 			const mockConfiguration = { get: jest.fn() };
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
@@ -282,8 +341,10 @@ describe('Configuration', () => {
 				switch (key) {
 					case 'autoExecutable':
 						return false;
-					case 'executable':
-						return 'test.exec';
+					case 'executable.linux':
+					case 'executable.osx':
+					case 'executable.windows':
+						return 'test.platform';
 					case 'exclude':
 						return ['test/{test|test-test}/*.php'];
 					case 'lintAction':
@@ -292,6 +353,8 @@ describe('Configuration', () => {
 						return StandardType.Disabled;
 
 					// Deprecated options.
+					case 'executable':
+						return undefined;
 					case 'ignorePatterns':
 						return ['test'];
 				}
@@ -311,7 +374,7 @@ describe('Configuration', () => {
 			);
 			expect(result).toMatchObject({
 				workingDirectory: 'test',
-				executable: 'test.exec',
+				executable: 'test.platform',
 				exclude: [
 					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,
 					/test/,
