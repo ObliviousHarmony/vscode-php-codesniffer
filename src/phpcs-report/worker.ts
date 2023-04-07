@@ -216,6 +216,11 @@ export class Worker {
 			},
 		};
 
+		// We need to run the command through a shell on Windows to handle batch files.
+		if (process.platform === 'win32') {
+			processOptions.shell = true;
+		}
+
 		// Give the working directory when requested.
 		if (request.options.workingDirectory) {
 			processOptions.cwd = request.options.workingDirectory;
@@ -269,14 +274,11 @@ export class Worker {
 
 		// Send the document to be handled.
 		if (phpcsProcess.stdin.writable) {
-			console.log('Writing File Content');
 			// Write the input file path before the content so PHPCS can utilize it.
 			phpcsProcess.stdin.write(
 				'phpcs_input_file: ' + request.documentPath + '\n'
 			);
 			phpcsProcess.stdin.end(request.documentContent);
-		} else {
-			console.log('Did Not Write File Content');
 		}
 
 		// Clear the content to free memory as we don't need it anymore.
