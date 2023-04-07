@@ -125,16 +125,14 @@
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "markdownDeprecationMessage": "Executables are now be platform-specific; use `#phpCodeSniffer.exec.linux#`, `#phpCodeSniffer.exec.osx#`, or `#phpCodeSniffer.exec.windows#` instead.",
-          "default": "phpcs",
+          "default": null,
           "scope": "machine-overridable"
         },
         "phpCodeSniffer.ignorePatterns": {
           "type": "array",
           "description": "An array of regular expressions for paths that should be ignored by the extension.",
           "markdownDeprecationMessage": "File and folder exclusions should use glob patterns in `#phpCodeSniffer.exclude#` instead.",
-          "default": [
-            ".*/vendor/.*"
-          ],
+          "default": null,
           "items": {
             "type": "string"
           },

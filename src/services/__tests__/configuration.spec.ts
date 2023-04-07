@@ -82,7 +82,7 @@ describe('Configuration', () => {
 				// Deprecated options.
 				case 'executable':
 				case 'ignorePatterns':
-					return undefined;
+					return null;
 			}
 
 			fail(
@@ -175,7 +175,7 @@ describe('Configuration', () => {
 				// Deprecated settings.
 				case 'executable':
 				case 'ignorePatterns':
-					return undefined;
+					return null;
 			}
 
 			fail(
@@ -272,9 +272,8 @@ describe('Configuration', () => {
 
 				// Deprecated settings.
 				case 'executable':
-					return undefined;
 				case 'ignorePatterns':
-					return undefined;
+					return null;
 			}
 
 			fail(
@@ -316,7 +315,7 @@ describe('Configuration', () => {
 					case 'executable':
 						return 'test.exec';
 					case 'ignorePatterns':
-						return undefined;
+						return null;
 				}
 
 				fail(
@@ -363,7 +362,7 @@ describe('Configuration', () => {
 
 					// Deprecated options.
 					case 'executable':
-						return undefined;
+						return null;
 					case 'ignorePatterns':
 						return ['test'];
 				}
