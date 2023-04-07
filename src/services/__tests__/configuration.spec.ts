@@ -30,8 +30,8 @@ type ConfigurationType = {
 	standardCustom: string;
 
 	// Deprecated Options
-	executable: string | null,
-	ignorePatterns: string[] | null,
+	executable: string | null;
+	ignorePatterns: string[] | null;
 };
 
 /**
