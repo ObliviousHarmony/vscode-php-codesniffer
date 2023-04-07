@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows` options
 for platform-specific executables.
+- Support for execution on Windows without the use of WSL.
 
 ### Deprecated
 - `phpCodeSniffer.executable` has been deprecated in favor of using platform-specific executables.
