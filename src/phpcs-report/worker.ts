@@ -214,7 +214,7 @@ export class Worker {
 					data: request.data,
 				}),
 			},
-			shell: true,
+			windowsHide: true
 		};
 
 		// Give the working directory when requested.
@@ -277,7 +277,7 @@ export class Worker {
 			phpcsProcess.stdin.write(
 				'phpcs_input_file: ' + request.documentPath + '\n'
 			);
-			phpcsProcess.stdin.end(request.documentContent);
+			//phpcsProcess.stdin.end(request.documentContent);
 		}
 
 		// Clear the content to free memory as we don't need it anymore.
