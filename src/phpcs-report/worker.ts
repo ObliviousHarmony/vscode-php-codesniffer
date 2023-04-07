@@ -214,7 +214,7 @@ export class Worker {
 					data: request.data,
 				}),
 			},
-			windowsHide: true
+			windowsHide: true,
 		};
 
 		// Give the working directory when requested.
