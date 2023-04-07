@@ -1,4 +1,3 @@
-
 import { Worker } from '../worker';
 import { WorkerPool } from '../worker-pool';
 import { MockCancellationToken } from '../../__mocks__/vscode';

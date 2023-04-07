@@ -28,13 +28,18 @@ describe('Worker/WorkerPool Integration', () => {
 			'..',
 			'vendor',
 			'bin',
-			'phpcs'
+			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
 		try {
 			child_process.execFileSync(phpcsPath, ['--version']);
 		} catch (e) {
-			throw new Error('This test requires `composer install` to be ran.');
+			console.log(e);
+			throw new Error(
+				'PHPCS could not be found at "' +
+					phpcsPath +
+					'". Have you ran `composer install`?'
+			);
 		}
 	});
 

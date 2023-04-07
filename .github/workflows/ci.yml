@@ -13,11 +13,54 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: php-actions/composer@v5
+    - uses: actions/checkout@v3
 
-    - name: Install Modules
+    - name: Install Node
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install Node Dependencies
       run: npm install
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: latest
+
+    - name: Install Composer Dependencies
+      run: composer install
+
+    - name: Lint JavaScript
+      run: npm run lint
+
+    - name: Lint PHP
+      run: composer run-script lint
+
+    - name: Unit Tests
+      run: npm run test
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Node
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install Node Dependencies
+      run: npm install
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: latest
+
+    - name: Install Composer Dependencies
+      run: composer install
 
     - name: Lint JavaScript
       run: npm run lint
