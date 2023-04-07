@@ -244,8 +244,8 @@ export class Configuration {
 				executableSetting = 'exec.linux';
 				break;
 		}
-		const executable = config.get<string>(executableSetting);
-		if (executable === undefined) {
+		const platformExecutable = config.get<string>(executableSetting);
+		if (platformExecutable === undefined) {
 			throw new Error(
 				'The extension has an invalid `' +
 					executableSetting +
@@ -254,10 +254,11 @@ export class Configuration {
 		}
 
 		// Support the deprecated `executable` setting that should override the platform-specific one.
-		const deprecatedExecutable = config.get<string>('executable');
+		const deprecatedExecutable = config.get<string | null>('executable');
+		const executable = deprecatedExecutable ?? platformExecutable;
 
-		let rawPatterns = config.get<string[]>('exclude');
-		if (!Array.isArray(rawPatterns)) {
+		const excludePatterns = config.get<string[]>('exclude');
+		if (!Array.isArray(excludePatterns)) {
 			throw new Error(
 				'The extension has an invalid `phpCodeSniffer.exclude` configuration.'
 			);
@@ -265,7 +266,7 @@ export class Configuration {
 
 		// Parse the glob patterns into a format we can use.
 		const exclude: RegExp[] = [];
-		for (const pattern of rawPatterns) {
+		for (const pattern of excludePatterns) {
 			const match = new Minimatch(pattern);
 			const regex = match.makeRe();
 			if (!regex) {
@@ -276,15 +277,17 @@ export class Configuration {
 		}
 
 		// Support the deprecated `ignorePatterns` option.
-		rawPatterns = config.get<string[]>('ignorePatterns');
-		if (rawPatterns) {
-			if (!Array.isArray(rawPatterns)) {
+		const deprecatedIgnorePatterns = config.get<string[] | null>(
+			'ignorePatterns'
+		);
+		if (deprecatedIgnorePatterns) {
+			if (!Array.isArray(deprecatedIgnorePatterns)) {
 				throw new Error(
 					'The extension has an invalid `phpCodeSniffer.ignorePatterns` configuration.'
 				);
 			}
 
-			exclude.push(...rawPatterns.map((v) => new RegExp(v)));
+			exclude.push(...deprecatedIgnorePatterns.map((v) => new RegExp(v)));
 		}
 
 		const lintAction = config.get<LintAction>('lintAction');
@@ -304,7 +307,7 @@ export class Configuration {
 
 		return {
 			autoExecutable,
-			executable: deprecatedExecutable ?? executable,
+			executable,
 			exclude,
 			lintAction,
 			standard,

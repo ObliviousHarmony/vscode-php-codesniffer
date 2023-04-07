@@ -250,8 +250,33 @@ export class Worker {
 			pendingError += data;
 		});
 
+		// Make sure that we handle any process-related errors.
+		let handledProcessError = false;
+		phpcsProcess.on('error', (err) => {
+			handledProcessError = true;
+
+			if (err.message.includes('ENOENT')) {
+				reject(
+					new PHPCSError(
+						'',
+						'The PHPCS executable "' +
+							executable +
+							'" could not be found.'
+					)
+				);
+				return;
+			}
+
+			reject(new PHPCSError('', 'The PHPCS process failed to start.'));
+		});
+
 		// Once the process has finished we will try to deliver a successful report to the requester.
 		phpcsProcess.on('close', (code) => {
+			// There's nothing to do since the process error rejected the promise.
+			if (handledProcessError) {
+				return;
+			}
+
 			// When the request is cancelled we don't need to send anyone the report.
 			if (this.cancellationToken?.isCancellationRequested) {
 				reject(new CancellationError());
