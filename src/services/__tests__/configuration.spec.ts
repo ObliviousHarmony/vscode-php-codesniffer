@@ -126,7 +126,7 @@ describe('Configuration', () => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
 					return Promise.reject(new FileSystemError(uri));
-				case 'test/composer.json': {
+				case 'test/composer.json':
 					const json = JSON.stringify({
 						config: {
 							'vendor-dir': 'newvendor',
@@ -134,7 +134,6 @@ describe('Configuration', () => {
 					});
 					const encoder = new TextEncoder();
 					return Promise.resolve(encoder.encode(json));
-				}
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
@@ -142,12 +141,12 @@ describe('Configuration', () => {
 
 		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
 			switch (uri.path) {
-				case 'test/newvendor/bin/phpcs': {
+				case 'test/newvendor/bin/phpcs.bat':
+				case 'test/newvendor/bin/phpcs':
 					const ret = new Uri();
 					ret.path = 'test';
 					ret.fsPath = 'test';
 					return Promise.resolve(ret);
-				}
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
@@ -187,7 +186,7 @@ describe('Configuration', () => {
 		);
 		expect(result).toMatchObject({
 			workingDirectory: 'test',
-			executable: 'test/newvendor/bin/phpcs',
+			executable: process.platform === 'win32' ? 'test/newvendor/bin/phpcs.bat' : 'test/newvendor/bin/phpcs',
 			exclude: [],
 			standard: StandardType.Disabled,
 		});
@@ -219,7 +218,7 @@ describe('Configuration', () => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
 					return Promise.reject(new FileSystemError(uri));
-				case 'test/composer.json': {
+				case 'test/composer.json':
 					const json = JSON.stringify({
 						config: {
 							'vendor-dir': 'newvendor',
@@ -227,7 +226,6 @@ describe('Configuration', () => {
 					});
 					const encoder = new TextEncoder();
 					return Promise.resolve(encoder.encode(json));
-				}
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
@@ -235,12 +233,12 @@ describe('Configuration', () => {
 
 		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
 			switch (uri.path) {
-				case 'test/newvendor/bin/phpcs': {
+				case 'test/newvendor/bin/phpcs.bat':
+				case 'test/newvendor/bin/phpcs':
 					const ret = new Uri();
 					ret.path = 'test';
 					ret.fsPath = 'test';
 					return Promise.resolve(ret);
-				}
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
