@@ -156,7 +156,8 @@
     "clean": "rimraf extension.js extension.js.map",
     "build": "webpack --mode development",
     "watch": "webpack --mode development --watch",
-    "lint": "eslint ./src --fix",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
     "test": "jest"
   }
 }
