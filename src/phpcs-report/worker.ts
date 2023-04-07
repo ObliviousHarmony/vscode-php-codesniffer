@@ -214,12 +214,16 @@ export class Worker {
 					data: request.data,
 				}),
 			},
+			windowsHide: true,
 		};
 
 		// Give the working directory when requested.
 		if (request.options.workingDirectory) {
 			processOptions.cwd = request.options.workingDirectory;
 		}
+
+		// Make sure PHPCS knows to read from STDIN.
+		processArguments.push('-');
 
 		// Create a new process to fetch the report.
 		const phpcsProcess = spawn(
@@ -269,10 +273,15 @@ export class Worker {
 
 		// Send the document to be handled.
 		if (phpcsProcess.stdin.writable) {
+			// Buffer the input so that Windows' blocking read will pull everything.
+			phpcsProcess.stdin.cork();
+
 			// Write the input file path before the content so PHPCS can utilize it.
 			phpcsProcess.stdin.write(
 				'phpcs_input_file: ' + request.documentPath + '\n'
 			);
+
+			// Write out the file content now and close the input.
 			phpcsProcess.stdin.end(request.documentContent);
 		}
 

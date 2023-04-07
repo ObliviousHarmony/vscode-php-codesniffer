@@ -16,6 +16,7 @@ import { Configuration, LintAction, StandardType } from '../configuration';
 describe('Configuration', () => {
 	let mockDocument: TextDocument;
 	let configuration: Configuration;
+	let textEncoder: TextEncoder;
 
 	beforeAll(() => {
 		// Create a mock implementation that can create joined paths.
@@ -49,6 +50,7 @@ describe('Configuration', () => {
 	beforeEach(() => {
 		mockDocument = new MockTextDocument();
 		configuration = new Configuration(workspace);
+		textEncoder = new TextEncoder();
 	});
 
 	afterEach(() => {
@@ -66,8 +68,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return false;
-				case 'executable':
-					return 'test.exec';
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
+					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
@@ -76,6 +80,7 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated options.
+				case 'executable':
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -93,7 +98,7 @@ describe('Configuration', () => {
 		);
 		expect(result).toMatchObject({
 			workingDirectory: 'test/file',
-			executable: 'test.exec',
+			executable: 'test.platform',
 			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
 			standard: StandardType.Disabled,
 		});
@@ -123,15 +128,16 @@ describe('Configuration', () => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
 					return Promise.reject(new FileSystemError(uri));
-				case 'test/composer.json': {
-					const json = JSON.stringify({
-						config: {
-							'vendor-dir': 'newvendor',
-						},
-					});
-					const encoder = new TextEncoder();
-					return Promise.resolve(encoder.encode(json));
-				}
+				case 'test/composer.json':
+					return Promise.resolve(
+						textEncoder.encode(
+							JSON.stringify({
+								config: {
+									'vendor-dir': 'newvendor',
+								},
+							})
+						)
+					);
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
@@ -139,6 +145,7 @@ describe('Configuration', () => {
 
 		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
 			switch (uri.path) {
+				case 'test/newvendor/bin/phpcs.bat':
 				case 'test/newvendor/bin/phpcs': {
 					const ret = new Uri();
 					ret.path = 'test';
@@ -154,8 +161,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable':
-					return 'test.exec';
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
+					return 'test.platform';
 				case 'exclude':
 					return [];
 				case 'lintAction':
@@ -164,6 +173,7 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated settings.
+				case 'executable':
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -181,7 +191,10 @@ describe('Configuration', () => {
 		);
 		expect(result).toMatchObject({
 			workingDirectory: 'test',
-			executable: 'test/newvendor/bin/phpcs',
+			executable:
+				process.platform === 'win32'
+					? 'test/newvendor/bin/phpcs.bat'
+					: 'test/newvendor/bin/phpcs',
 			exclude: [],
 			standard: StandardType.Disabled,
 		});
@@ -213,15 +226,16 @@ describe('Configuration', () => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
 					return Promise.reject(new FileSystemError(uri));
-				case 'test/composer.json': {
-					const json = JSON.stringify({
-						config: {
-							'vendor-dir': 'newvendor',
-						},
-					});
-					const encoder = new TextEncoder();
-					return Promise.resolve(encoder.encode(json));
-				}
+				case 'test/composer.json':
+					return Promise.resolve(
+						textEncoder.encode(
+							JSON.stringify({
+								config: {
+									'vendor-dir': 'newvendor',
+								},
+							})
+						)
+					);
 			}
 
 			throw new Error('Invalid path: ' + uri.path);
@@ -229,6 +243,7 @@ describe('Configuration', () => {
 
 		jest.mocked(workspace.fs.stat).mockImplementation((uri) => {
 			switch (uri.path) {
+				case 'test/newvendor/bin/phpcs.bat':
 				case 'test/newvendor/bin/phpcs': {
 					const ret = new Uri();
 					ret.path = 'test';
@@ -244,8 +259,10 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable':
-					return 'test.exec';
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
+					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
 				case 'lintAction':
@@ -254,6 +271,8 @@ describe('Configuration', () => {
 					return StandardType.Disabled;
 
 				// Deprecated settings.
+				case 'executable':
+					return undefined;
 				case 'ignorePatterns':
 					return undefined;
 			}
@@ -272,6 +291,55 @@ describe('Configuration', () => {
 	});
 
 	describe('deprecated options', () => {
+		it('should handle "executable" deprecation', async () => {
+			const mockConfiguration = { get: jest.fn() };
+			jest.mocked(workspace).getConfiguration.mockReturnValue(
+				mockConfiguration as never
+			);
+
+			mockConfiguration.get.mockImplementation((key) => {
+				switch (key) {
+					case 'autoExecutable':
+						return false;
+					case 'exec.linux':
+					case 'exec.osx':
+					case 'exec.windows':
+						return 'test.platform';
+					case 'exclude':
+						return [];
+					case 'lintAction':
+						return LintAction.Change;
+					case 'standard':
+						return StandardType.Disabled;
+
+					// Deprecated options.
+					case 'executable':
+						return 'test.exec';
+					case 'ignorePatterns':
+						return undefined;
+				}
+
+				fail(
+					'An unexpected configuration key of ' +
+						key +
+						' was received.'
+				);
+			});
+
+			const result = await configuration.get(mockDocument);
+
+			expect(workspace.getConfiguration).toHaveBeenCalledWith(
+				'phpCodeSniffer',
+				mockDocument
+			);
+			expect(result).toMatchObject({
+				workingDirectory: 'test',
+				executable: 'test.exec',
+				exclude: [],
+				standard: StandardType.Disabled,
+			});
+		});
+
 		it('should handle "ignorePatterns" deprecation', async () => {
 			const mockConfiguration = { get: jest.fn() };
 			jest.mocked(workspace).getConfiguration.mockReturnValue(
@@ -282,8 +350,10 @@ describe('Configuration', () => {
 				switch (key) {
 					case 'autoExecutable':
 						return false;
-					case 'executable':
-						return 'test.exec';
+					case 'exec.linux':
+					case 'exec.osx':
+					case 'exec.windows':
+						return 'test.platform';
 					case 'exclude':
 						return ['test/{test|test-test}/*.php'];
 					case 'lintAction':
@@ -292,6 +362,8 @@ describe('Configuration', () => {
 						return StandardType.Disabled;
 
 					// Deprecated options.
+					case 'executable':
+						return undefined;
 					case 'ignorePatterns':
 						return ['test'];
 				}
@@ -311,7 +383,7 @@ describe('Configuration', () => {
 			);
 			expect(result).toMatchObject({
 				workingDirectory: 'test',
-				executable: 'test.exec',
+				executable: 'test.platform',
 				exclude: [
 					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,
 					/test/,

@@ -207,8 +207,8 @@ describe('Worker', () => {
 			documentContent: '<?php class Test {}',
 			options: {
 				workingDirectory: __dirname,
-				// Adding the PHP executable won't break the PHPCS script.
-				executable: '/usr/bin/env php ' + phpcsPath,
+				// Since we use custom reports, adding `-s` for sources won't break anything.
+				executable: phpcsPath + ' -s',
 				standard: StandardType.PSR12,
 			},
 			data: null,

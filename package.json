@@ -42,27 +42,27 @@
       "properties": {
         "phpCodeSniffer.autoExecutable": {
           "type": "boolean",
-          "markdownDescription": "Attempts to find `bin/phpcs` in the file directory and parent directories' vendor directory before falling back to `#phpCodeSniffer.executable#`.",
+          "markdownDescription": "Attempts to find `bin/phpcs` in the file directory and parent directories' vendor directory before falling back to the platform-specific executable.",
           "default": false,
           "scope": "resource"
         },
-        "phpCodeSniffer.executable": {
+        "phpCodeSniffer.exec.linux": {
           "type": "string",
-          "markdownDescription": "The path to the PHPCS executable we want to use when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
+          "markdownDescription": "The path to the PHPCS executable we want to use on Linux when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "default": "phpcs",
           "scope": "machine-overridable"
         },
-        "phpCodeSniffer.ignorePatterns": {
-          "type": "array",
-          "description": "An array of regular expressions for paths that should be ignored by the extension.",
-          "markdownDeprecationMessage": "File and folder exclusions should use glob patterns in `#phpCodeSniffer.exclude#` instead.",
-          "default": [
-            ".*/vendor/.*"
-          ],
-          "items": {
-            "type": "string"
-          },
-          "scope": "window"
+        "phpCodeSniffer.exec.osx": {
+          "type": "string",
+          "markdownDescription": "The path to the PHPCS executable we want to use on OSX when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
+          "default": "phpcs",
+          "scope": "machine-overridable"
+        },
+        "phpCodeSniffer.exec.windows": {
+          "type": "string",
+          "markdownDescription": "The path to the PHPCS executable we want to use on Windows when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
+          "default": "phpcs.bat",
+          "scope": "machine-overridable"
         },
         "phpCodeSniffer.exclude": {
           "type": "array",
@@ -119,6 +119,25 @@
           "type": "string",
           "markdownDescription": "The custom coding standard to use if `#phpCodeSniffer.standard#` is set to 'Custom'.",
           "default": "",
+          "scope": "window"
+        },
+        "phpCodeSniffer.executable": {
+          "type": "string",
+          "markdownDescription": "The path to the PHPCS executable we want to use when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
+          "markdownDeprecationMessage": "Executables are now be platform-specific; use `#phpCodeSniffer.exec.linux#`, `#phpCodeSniffer.exec.osx#`, or `#phpCodeSniffer.exec.windows#` instead.",
+          "default": "phpcs",
+          "scope": "machine-overridable"
+        },
+        "phpCodeSniffer.ignorePatterns": {
+          "type": "array",
+          "description": "An array of regular expressions for paths that should be ignored by the extension.",
+          "markdownDeprecationMessage": "File and folder exclusions should use glob patterns in `#phpCodeSniffer.exclude#` instead.",
+          "default": [
+            ".*/vendor/.*"
+          ],
+          "items": {
+            "type": "string"
+          },
           "scope": "window"
         }
       }
