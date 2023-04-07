@@ -216,15 +216,13 @@ export class Worker {
 			},
 		};
 
-		// We need to run the command through a shell on Windows to handle batch files.
-		if (process.platform === 'win32') {
-			processOptions.shell = true;
-		}
-
 		// Give the working directory when requested.
 		if (request.options.workingDirectory) {
 			processOptions.cwd = request.options.workingDirectory;
 		}
+
+		// Make sure PHPCS knows to read from STDIN.
+		processArguments.push('-');
 
 		// Create a new process to fetch the report.
 		const phpcsProcess = spawn(
