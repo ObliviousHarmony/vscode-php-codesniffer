@@ -273,11 +273,7 @@ export class Worker {
 
 		// Send the document to be handled.
 		if (phpcsProcess.stdin.writable) {
-			// Write the input file path before the content so PHPCS can utilize it.
-			phpcsProcess.stdin.write(
-				'phpcs_input_file: ' + request.documentPath + '\n'
-			);
-			//phpcsProcess.stdin.end(request.documentContent);
+			phpcsProcess.stdin.end(request.documentContent);
 		}
 
 		// Clear the content to free memory as we don't need it anymore.
