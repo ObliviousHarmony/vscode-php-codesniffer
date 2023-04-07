@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 for platform-specific executables.
 - Support for execution on Windows without the use of WSL.
 
+### Fixed
+- Gracefully handle errors caused by an invalid PHPCS executable setting.
+
 ### Deprecated
 - `phpCodeSniffer.executable` has been deprecated in favor of using platform-specific executables.
 
