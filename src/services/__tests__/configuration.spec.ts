@@ -68,9 +68,9 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return false;
-				case 'executable.linux':
-				case 'executable.osx':
-				case 'executable.windows':
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
 					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
@@ -161,9 +161,9 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable.linux':
-				case 'executable.osx':
-				case 'executable.windows':
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
 					return 'test.platform';
 				case 'exclude':
 					return [];
@@ -259,9 +259,9 @@ describe('Configuration', () => {
 			switch (key) {
 				case 'autoExecutable':
 					return true;
-				case 'executable.linux':
-				case 'executable.osx':
-				case 'executable.windows':
+				case 'exec.linux':
+				case 'exec.osx':
+				case 'exec.windows':
 					return 'test.platform';
 				case 'exclude':
 					return ['test/{test|test-test}/*.php'];
@@ -301,9 +301,9 @@ describe('Configuration', () => {
 				switch (key) {
 					case 'autoExecutable':
 						return false;
-					case 'executable.linux':
-					case 'executable.osx':
-					case 'executable.windows':
+					case 'exec.linux':
+					case 'exec.osx':
+					case 'exec.windows':
 						return 'test.platform';
 					case 'exclude':
 						return [];
@@ -350,9 +350,9 @@ describe('Configuration', () => {
 				switch (key) {
 					case 'autoExecutable':
 						return false;
-					case 'executable.linux':
-					case 'executable.osx':
-					case 'executable.windows':
+					case 'exec.linux':
+					case 'exec.osx':
+					case 'exec.windows':
 						return 'test.platform';
 					case 'exclude':
 						return ['test/{test|test-test}/*.php'];

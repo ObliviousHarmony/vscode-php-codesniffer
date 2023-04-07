@@ -235,13 +235,13 @@ export class Configuration {
 		let executableSetting: string;
 		switch (process.platform) {
 			case 'win32':
-				executableSetting = 'executable.windows';
+				executableSetting = 'exec.windows';
 				break;
 			case 'darwin':
-				executableSetting = 'executable.osx';
+				executableSetting = 'exec.osx';
 				break;
 			default:
-				executableSetting = 'executable.linux';
+				executableSetting = 'exec.linux';
 				break;
 		}
 		const executable = config.get<string>(executableSetting);

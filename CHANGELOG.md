@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- `phpCodeSniffer.executable.linux`, `phpCodeSniffer.executable.osx`, and `phpCodeSniffer.executable.windows` options
+- `phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows` options
 for platform-specific executables.
 
 ### Deprecated

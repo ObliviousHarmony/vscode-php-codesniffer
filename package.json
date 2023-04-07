@@ -46,19 +46,19 @@
           "default": false,
           "scope": "resource"
         },
-        "phpCodeSniffer.executable.linux": {
+        "phpCodeSniffer.exec.linux": {
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use on Linux when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "default": "phpcs",
           "scope": "machine-overridable"
         },
-        "phpCodeSniffer.executable.osx": {
+        "phpCodeSniffer.exec.osx": {
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use on OSX when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "default": "phpcs",
           "scope": "machine-overridable"
         },
-        "phpCodeSniffer.executable.windows": {
+        "phpCodeSniffer.exec.windows": {
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use on Windows when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
           "default": "phpcs.bat",
@@ -124,7 +124,7 @@
         "phpCodeSniffer.executable": {
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
-          "markdownDeprecationMessage": "Executables are now be platform-specific; use `#phpCodeSniffer.executable.linux#`, `#phpCodeSniffer.executable.osx#`, or `#phpCodeSniffer.executable.windows#` instead.",
+          "markdownDeprecationMessage": "Executables are now be platform-specific; use `#phpCodeSniffer.exec.linux#`, `#phpCodeSniffer.exec.osx#`, or `#phpCodeSniffer.exec.windows#` instead.",
           "default": "phpcs",
           "scope": "machine-overridable"
         },
