@@ -28,7 +28,7 @@ describe('Worker/WorkerPool Integration', () => {
 			'..',
 			'vendor',
 			'bin',
-			'phpcs'
+			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
 		try {
@@ -36,7 +36,9 @@ describe('Worker/WorkerPool Integration', () => {
 		} catch (e) {
 			console.log(e);
 			throw new Error(
-				'PHPCS could not be found at "' + phpcsPath + '". Have you ran `composer install`?'
+				'PHPCS could not be found at "' +
+					phpcsPath +
+					'". Have you ran `composer install`?'
 			);
 		}
 	});

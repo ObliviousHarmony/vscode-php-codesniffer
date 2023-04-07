@@ -28,7 +28,7 @@ describe('Worker', () => {
 			'..',
 			'vendor',
 			'bin',
-			'phpcs'
+			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
 		try {
