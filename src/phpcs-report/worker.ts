@@ -214,6 +214,7 @@ export class Worker {
 					data: request.data,
 				}),
 			},
+			shell: true,
 		};
 
 		// Give the working directory when requested.
