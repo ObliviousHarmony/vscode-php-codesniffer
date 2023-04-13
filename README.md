@@ -24,7 +24,7 @@ Allow PHPCS to decide what standard should apply to the document. It will either
 
 #### `Automatic`
 
-When selected, this option will cause the extension to search for an applicable coding standard file (`.phpcs.xml`, `phpcs.xml`, `.phpcs.xml.dist`, `phpcs.xml.dist`). The extension starts in the document's directory and traverses through parent directories until it reaches the workspace root. If the extension fails to find a file it will do nothing and output an error.
+When selected, this option will cause the extension to search for an applicable coding standard file (`.phpcs.xml`, `phpcs.xml`, `.phpcs.xml.dist`, `phpcs.xml.dist`). The extension starts in the document's folder and traverses through parent directories until it reaches the workspace root. If the extension fails to find a file it will do nothing and output an error.
 
 #### `Custom`
 
