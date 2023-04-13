@@ -4,7 +4,6 @@ import { ReportType } from './response';
  * The request options for PHPCS.
  */
 export interface RequestOptions {
-	workingDirectory: string;
 	executable: string;
 	standard: string | null;
 }

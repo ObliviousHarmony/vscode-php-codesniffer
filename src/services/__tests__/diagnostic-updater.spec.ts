@@ -96,9 +96,10 @@ describe('DiagnosticUpdater', () => {
 		const workspaceUri = new Uri();
 		workspaceUri.path = 'test-dir';
 		workspaceUri.fsPath = 'test-dir';
-		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
+		jest.mocked(
+			mockWorkspaceLocator
+		).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
@@ -107,8 +108,8 @@ describe('DiagnosticUpdater', () => {
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
+				workingDirectory: 'test-dir',
 				options: {
-					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
 					standard: 'PSR12',
 				},
@@ -157,9 +158,10 @@ describe('DiagnosticUpdater', () => {
 		const workspaceUri = new Uri();
 		workspaceUri.path = 'test-dir';
 		workspaceUri.fsPath = 'test-dir';
-		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
+		jest.mocked(
+			mockWorkspaceLocator
+		).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
@@ -168,8 +170,8 @@ describe('DiagnosticUpdater', () => {
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
+				workingDirectory: 'test-dir',
 				options: {
-					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
 					standard: 'PSR12',
 				},
@@ -192,7 +194,6 @@ describe('DiagnosticUpdater', () => {
 		document.fileName = 'test-document';
 
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [new RegExp('.*/file/.*')],
 			lintAction: LintAction.Change,
@@ -207,7 +208,6 @@ describe('DiagnosticUpdater', () => {
 		document.fileName = 'test-document';
 
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Save,

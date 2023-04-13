@@ -72,7 +72,6 @@ export class DocumentFormatter extends WorkerService {
 					documentPath: document.uri.fsPath,
 					documentContent: document.getText(),
 					options: {
-						workingDirectory: config.workingDirectory,
 						executable: config.executable,
 						standard: config.standard,
 					},

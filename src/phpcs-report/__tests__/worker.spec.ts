@@ -50,7 +50,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -73,7 +72,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -98,7 +96,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -139,7 +136,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -162,7 +158,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -189,7 +184,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -211,7 +205,6 @@ describe('Worker', () => {
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				// Since we use custom reports, adding `-s` for sources won't break anything.
 				executable: phpcsPath + ' -s',
 				standard: 'PSR12',

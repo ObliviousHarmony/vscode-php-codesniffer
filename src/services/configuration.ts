@@ -51,7 +51,6 @@ export enum LintAction {
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
-	workingDirectory: string;
 	executable?: string;
 }
 
@@ -70,11 +69,6 @@ interface ParamsFromConfiguration {
  * An interface describing the shape of a document's configuration.
  */
 export interface DocumentConfiguration {
-	/**
-	 * The working directory we should use when executing reports.
-	 */
-	workingDirectory: string;
-
 	/**
 	 * The executable we should use in the worker.
 	 */
@@ -179,7 +173,6 @@ export class Configuration {
 
 		// Build and cache the document configuration to save time later.
 		config = {
-			workingDirectory: fromFilesystem.workingDirectory,
 			executable: fromFilesystem.executable ?? fromConfig.executable,
 			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
@@ -364,13 +357,8 @@ export class Configuration {
 				return standard;
 		}
 
-		// We are only going to traverse as high as the workspace folder.
-		const workspaceFolder =
-			this.workspaceLocator.getWorkspaceFolderOrDefault(document.uri);
-
 		const parsed = await this.traverseWorkspaceFolders(
 			document.uri,
-			workspaceFolder,
 			(uri) => this.findCodingStandardFile(uri),
 			cancellationToken
 		);
@@ -393,30 +381,20 @@ export class Configuration {
 		findExecutable: boolean,
 		cancellationToken?: CancellationToken
 	): Promise<ParamsFromFilesystem> {
-		// The workspace folder for the document is our default working directory.
-		const workspaceFolder =
-			this.workspaceLocator.getWorkspaceFolderOrDefault(document.uri);
-
-		// Prepare the parameters that come from the filesystem.
-		const fsParams: ParamsFromFilesystem = {
-			workingDirectory: workspaceFolder.fsPath,
-		};
-
 		// When an executable is requested we should attempt to populate the params with one.
 		if (findExecutable) {
 			const executable = await this.traverseWorkspaceFolders(
 				document.uri,
-				workspaceFolder,
 				(uri) => this.findExecutableInFolder(uri),
 				cancellationToken
 			);
 
 			if (executable !== false) {
-				fsParams.executable = executable;
+				return { executable };
 			}
 		}
 
-		return fsParams;
+		return {};
 	}
 
 	/**
@@ -424,16 +402,17 @@ export class Configuration {
 	 * a callback on each Uri until the caller finds what they are looking for.
 	 *
 	 * @param {Uri} documentUri The Uri of the document we are traversing from.
-	 * @param {Uri} workspaceFolder The workspace folder that is the highest we should traverse.
 	 * @param {FolderTraversalCallback} callback The callback to execute on each Uri in the traversal.
 	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
 	private async traverseWorkspaceFolders<T>(
 		documentUri: Uri,
-		workspaceFolder: Uri,
 		callback: FolderTraversalCallback<T>,
 		cancellationToken?: CancellationToken
 	): Promise<T | false> {
+		const workspaceFolder =
+			this.workspaceLocator.getWorkspaceFolderOrDefault(documentUri);
+
 		// Where we start the traversal will depend on the scheme of the document.
 		let folder: Uri;
 		switch (documentUri.scheme) {

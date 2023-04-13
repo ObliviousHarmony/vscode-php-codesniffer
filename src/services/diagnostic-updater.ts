@@ -159,8 +159,6 @@ export class DiagnosticUpdater extends WorkerService {
 							documentPath: document.uri.fsPath,
 							documentContent: document.getText(),
 							options: {
-								workingDirectory:
-									configuration.workingDirectory,
 								executable: configuration.executable,
 								standard: configuration.standard,
 							},

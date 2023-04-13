@@ -119,7 +119,6 @@ describe('Configuration', () => {
 			mockDocument
 		);
 		expect(result).toMatchObject({
-			workingDirectory: 'test',
 			executable: 'test.platform',
 			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
 			standard: null,
@@ -185,7 +184,6 @@ describe('Configuration', () => {
 			mockDocument
 		);
 		expect(result).toMatchObject({
-			workingDirectory: 'test',
 			executable:
 				process.platform === 'win32'
 					? 'test/newvendor/bin/phpcs.bat'
@@ -225,7 +223,6 @@ describe('Configuration', () => {
 			mockDocument
 		);
 		expect(result).toMatchObject({
-			workingDirectory: 'test',
 			executable: 'test.platform',
 			exclude: [],
 			standard: null,
@@ -254,7 +251,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: null,
@@ -280,7 +276,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: '',
@@ -307,7 +302,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: 'test-custom',
@@ -333,7 +327,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: 'LITERAL',
@@ -374,7 +367,6 @@ describe('Configuration', () => {
 					mockDocument
 				);
 				expect(result).toMatchObject({
-					workingDirectory: 'test',
 					executable: 'test.platform',
 					exclude: [],
 					standard: 'test/file/phpcs.xml',
@@ -424,7 +416,6 @@ describe('Configuration', () => {
 					mockDocument
 				);
 				expect(result).toMatchObject({
-					workingDirectory: 'test',
 					executable: 'test.platform',
 					exclude: [],
 					standard: 'test/.phpcs.xml',
@@ -475,7 +466,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.override',
 				exclude: [],
 				standard: null,
@@ -502,7 +492,6 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [
 					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,

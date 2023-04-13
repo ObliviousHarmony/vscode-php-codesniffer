@@ -51,7 +51,6 @@ describe('Worker/WorkerPool Integration', () => {
 				documentPath: 'Test.php',
 				documentContent: '<?php class Test {}',
 				options: {
-					workingDirectory: __dirname,
 					executable: phpcsPath,
 					standard: 'PSR12',
 				},
@@ -80,7 +79,6 @@ describe('Worker/WorkerPool Integration', () => {
 				documentPath: 'Test.php',
 				documentContent: '<?php class Test {}',
 				options: {
-					workingDirectory: __dirname,
 					executable: phpcsPath,
 					standard: 'PSR12',
 				},
