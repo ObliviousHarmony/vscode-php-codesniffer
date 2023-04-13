@@ -8,6 +8,7 @@ import { Logger } from './logger';
 import { Configuration } from './configuration';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { UriMap } from '../common/uri-map';
+import { WorkspaceLocator } from './workspace-locator';
 
 /**
  * A base class for all of the updates that interact with PHPCS.
@@ -17,6 +18,11 @@ export abstract class WorkerService implements Disposable {
 	 * The logger to use.
 	 */
 	protected readonly logger: Logger;
+
+	/**
+	 * The workspace locator.
+	 */
+	protected readonly workspaceLocator: WorkspaceLocator;
 
 	/**
 	 * The configuration object.
@@ -37,15 +43,18 @@ export abstract class WorkerService implements Disposable {
 	 * Constructor.
 	 *
 	 * @param {Logger} logger The logger to use.
+	 * @param {WorkspaceLocator} workspaceLocator The workspace locator to use.
 	 * @param {Configuration} configuration The configuration object to use.
 	 * @param {WorkerPool} workerPool The worker pool to use.
 	 */
 	public constructor(
 		logger: Logger,
+		workspaceLocator: WorkspaceLocator,
 		configuration: Configuration,
 		workerPool: WorkerPool
 	) {
 		this.logger = logger;
+		this.workspaceLocator = workspaceLocator;
 		this.configuration = configuration;
 		this.workerPool = workerPool;
 		this.cancellationTokenSourceMap = new UriMap();

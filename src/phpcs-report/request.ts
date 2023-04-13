@@ -51,6 +51,11 @@ export interface Request<T extends ReportType> {
 	type: T;
 
 	/**
+	 * The working directory for the workspace that the report is being generated for.
+	 */
+	workingDirectory: string;
+
+	/**
 	 * The filesystem path for the document that the report is being generated for.
 	 */
 	documentPath: string;

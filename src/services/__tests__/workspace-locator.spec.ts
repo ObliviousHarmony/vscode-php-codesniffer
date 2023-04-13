@@ -12,8 +12,8 @@ describe('WorkspaceLocator', () => {
 	afterEach(() => {
 		jest.mocked(workspace).getWorkspaceFolder.mockReset();
 
-        // @ts-ignore
-        workspace.workspaceFolders = undefined;
+		// @ts-ignore
+		workspace.workspaceFolders = undefined;
 	});
 
 	it('should find workspace folder for uri', () => {
@@ -37,8 +37,8 @@ describe('WorkspaceLocator', () => {
 		const workspaceUri = new Uri();
 		workspaceUri.path = 'test/default';
 		workspaceUri.fsPath = 'test/default';
-        // @ts-ignore
-        workspace.workspaceFolders = [
+		// @ts-ignore
+		workspace.workspaceFolders = [
 			{
 				uri: workspaceUri,
 			} as never,

@@ -46,6 +46,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '',
 			options: {
@@ -68,6 +69,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
@@ -92,6 +94,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.CodeAction> = {
 			type: ReportType.CodeAction,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
@@ -132,6 +135,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Format> = {
 			type: ReportType.Format,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
@@ -154,6 +158,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
@@ -180,6 +185,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
@@ -201,6 +207,7 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {

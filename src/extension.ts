@@ -35,6 +35,7 @@ export function activate(context: ExtensionContext): void {
 	const workerPool = new WorkerPool(10);
 	const diagnosticUpdater = new DiagnosticUpdater(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool,
 		linterStatus,
@@ -43,11 +44,13 @@ export function activate(context: ExtensionContext): void {
 	);
 	const codeActionEditResolver = new CodeActionEditResolver(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool
 	);
 	const documentFormatter = new DocumentFormatter(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool
 	);

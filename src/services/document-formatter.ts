@@ -46,6 +46,10 @@ export class DocumentFormatter extends WorkerService {
 				);
 			})
 			.then(async (worker) => {
+				const workspaceUri =
+					this.workspaceLocator.getWorkspaceFolderOrDefault(
+						document.uri
+					);
 				const config = await this.configuration.get(document);
 
 				const data: FormatRequest = {};
@@ -64,6 +68,7 @@ export class DocumentFormatter extends WorkerService {
 				// Use the worker to make a request for a format report.
 				const request: Request<ReportType.Format> = {
 					type: ReportType.Format,
+					workingDirectory: workspaceUri.fsPath,
 					documentPath: document.uri.fsPath,
 					documentContent: document.getText(),
 					options: {

@@ -15,6 +15,7 @@ import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerPool } from '../phpcs-report/worker-pool';
 import { WorkerService } from './worker-service';
 import { LinterStatus } from './linter-status';
+import { WorkspaceLocator } from './workspace-locator';
 
 /**
  * A custom error type for identifying when an update was prevented.
@@ -44,6 +45,7 @@ export class DiagnosticUpdater extends WorkerService {
 	 * Constructor.
 	 *
 	 * @param {Logger} logger The logger to use.
+	 * @param {WorkspaceLocator} workspaceLocator The workspace locator to use.
 	 * @param {Configuration} configuration The configuration object to use.
 	 * @param {WorkerPool} workerPool The worker pool to use.
 	 * @param {LinterStatus} linterStatus The linter status service to use.
@@ -52,13 +54,14 @@ export class DiagnosticUpdater extends WorkerService {
 	 */
 	public constructor(
 		logger: Logger,
+		workspaceLocator: WorkspaceLocator,
 		configuration: Configuration,
 		workerPool: WorkerPool,
 		linterStatus: LinterStatus,
 		diagnosticCollection: DiagnosticCollection,
 		codeActionCollection: CodeActionCollection
 	) {
-		super(logger, configuration, workerPool);
+		super(logger, workspaceLocator, configuration, workerPool);
 
 		this.linterStatus = linterStatus;
 		this.diagnosticCollection = diagnosticCollection;
@@ -144,9 +147,15 @@ export class DiagnosticUpdater extends WorkerService {
 						cancellationToken
 					)
 					.then(async (worker) => {
+						const workspaceUri =
+							this.workspaceLocator.getWorkspaceFolderOrDefault(
+								document.uri
+							);
+
 						// Use the worker to make a request for a diagnostic report.
 						const request: Request<ReportType.Diagnostic> = {
 							type: ReportType.Diagnostic,
+							workingDirectory: workspaceUri.fsPath,
 							documentPath: document.uri.fsPath,
 							documentContent: document.getText(),
 							options: {

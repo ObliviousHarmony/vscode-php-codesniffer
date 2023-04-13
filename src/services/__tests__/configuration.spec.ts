@@ -89,7 +89,9 @@ describe('Configuration', () => {
 		const workspaceUri = new Uri();
 		workspaceUri.path = 'test';
 		workspaceUri.fsPath = 'test';
-		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
+		jest.mocked(
+			mockWorkspaceLocator
+		).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 	});
 
 	afterEach(() => {
@@ -210,7 +212,7 @@ describe('Configuration', () => {
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
-		
+
 		// We will never find the directory we are looking for
 		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
 			return Promise.reject(new FileSystemError(uri));

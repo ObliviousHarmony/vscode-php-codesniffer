@@ -57,11 +57,16 @@ export class CodeActionEditResolver extends WorkerService {
 				);
 			})
 			.then(async (worker) => {
+				const workspaceUri =
+					this.workspaceLocator.getWorkspaceFolderOrDefault(
+						document.uri
+					);
 				const config = await this.configuration.get(document);
 
 				// Use the worker to make a request for a code action report.
 				const request: Request<ReportType.CodeAction> = {
 					type: ReportType.CodeAction,
+					workingDirectory: workspaceUri.fsPath,
 					documentPath: document.uri.fsPath,
 					documentContent: document.getText(),
 					options: {

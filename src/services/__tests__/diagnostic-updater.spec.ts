@@ -15,6 +15,7 @@ import { DiagnosticUpdater } from '../diagnostic-updater';
 import {
 	MockDiagnosticCollection,
 	MockTextDocument,
+	Uri,
 } from '../../__mocks__/vscode';
 import { PHPCSError, Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
@@ -72,6 +73,7 @@ describe('DiagnosticUpdater', () => {
 
 		diagnosticUpdater = new DiagnosticUpdater(
 			mockLogger,
+			mockWorkspaceLocator,
 			mockConfiguration,
 			mockWorkerPool,
 			mockLinterStatus,
@@ -91,6 +93,10 @@ describe('DiagnosticUpdater', () => {
 				return Promise.resolve(mockWorker);
 			}
 		);
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test-dir';
+		workspaceUri.fsPath = 'test-dir';
+		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
@@ -148,6 +154,10 @@ describe('DiagnosticUpdater', () => {
 				return Promise.resolve(mockWorker);
 			}
 		);
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test-dir';
+		workspaceUri.fsPath = 'test-dir';
+		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
 			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
