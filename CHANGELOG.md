@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.0] - 2023-04-13
 ### Added
 - `Automatic` option for `phpCodeSniffer.standard` that searches for a coding standard file
 (`phpcs.xml`, `.phpcs.xml`, `phpcs.dist.xml`, `.phpcs.dist.xml`). The search begins in the
@@ -14,7 +16,7 @@ for platform-specific executables.
 - Support for execution on Windows without the use of WSL.
 
 ### Changed
-- Even if `phpCodeSniffer.autoExecutable` is enabled, the working directory given to PHPCS should always be the workspace root.
+- **BREAKING:** Even if `phpCodeSniffer.autoExecutable` is enabled, the working directory given to PHPCS should always be the workspace root.
 
 ### Deprecated
 - `phpCodeSniffer.executable` has been deprecated in favor of platform-specific executable options.
@@ -72,7 +74,7 @@ for platform-specific executables.
 
 ## [1.0.0] - 2021-03-01
 ### Fixed
-- Pass file path to `phpcs` for use in sniffs.
+- Pass file path to PHPCS for use in sniffs.
 - Handle Uri schemes other than `'file'`.
 
 ## [0.4.1] - 2021-02-22
