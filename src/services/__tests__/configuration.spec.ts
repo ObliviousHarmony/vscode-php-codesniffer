@@ -143,7 +143,7 @@ describe('Configuration', () => {
 			mockConfiguration as never
 		);
 
-		// We will traverse from the file directory up.
+		// We will traverse from the file folder up.
 		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
 			switch (uri.path) {
 				case 'test/file/composer.json':
@@ -211,7 +211,7 @@ describe('Configuration', () => {
 			mockConfiguration as never
 		);
 
-		// We will never find the directory we are looking for
+		// We will never find the folder we are looking for
 		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
 			return Promise.reject(new FileSystemError(uri));
 		});
@@ -334,7 +334,7 @@ describe('Configuration', () => {
 		});
 
 		describe('automatic', () => {
-			it('document directory', async () => {
+			it('document folder', async () => {
 				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 					switch (uri.path) {
 						case 'test/file/phpcs.xml':
@@ -373,7 +373,7 @@ describe('Configuration', () => {
 				});
 			});
 
-			it('parent directory', async () => {
+			it('parent folder', async () => {
 				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 					switch (uri.path) {
 						case 'test/file/phpcs.xml':
