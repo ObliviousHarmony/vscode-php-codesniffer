@@ -15,6 +15,7 @@ import {
 	LintAction,
 	SpecialStandardOptions,
 } from '../configuration';
+import { WorkspaceLocator } from '../workspace-locator';
 
 /**
  * The default configuration options to use in our tests.
@@ -71,19 +72,27 @@ const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
 	};
 };
 
+jest.mock('../workspace-locator');
+
 describe('Configuration', () => {
 	let mockDocument: TextDocument;
+	let mockWorkspaceLocator: WorkspaceLocator;
 	let configuration: Configuration;
 	let textEncoder: TextEncoder;
 
 	beforeEach(() => {
 		mockDocument = new MockTextDocument();
-		configuration = new Configuration(workspace);
+		mockWorkspaceLocator = new WorkspaceLocator(workspace);
+		configuration = new Configuration(workspace, mockWorkspaceLocator);
 		textEncoder = new TextEncoder();
+
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test';
+		workspaceUri.fsPath = 'test';
+		jest.mocked(mockWorkspaceLocator).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 	});
 
 	afterEach(() => {
-		jest.mocked(workspace).getWorkspaceFolder.mockReset();
 		jest.mocked(workspace).getConfiguration.mockReset();
 		jest.mocked(workspace).fs.readFile.mockReset();
 		jest.mocked(workspace).fs.stat.mockReset();
@@ -108,7 +117,7 @@ describe('Configuration', () => {
 			mockDocument
 		);
 		expect(result).toMatchObject({
-			workingDirectory: 'test/file',
+			workingDirectory: 'test',
 			executable: 'test.platform',
 			exclude: [/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/],
 			standard: null,
@@ -132,13 +141,6 @@ describe('Configuration', () => {
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
-
-		const workspaceUri = new Uri();
-		workspaceUri.path = 'test';
-		workspaceUri.fsPath = 'test';
-		jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
-			uri: workspaceUri,
-		} as never);
 
 		// We will traverse from the file directory up.
 		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
@@ -208,14 +210,7 @@ describe('Configuration', () => {
 		jest.mocked(workspace).getConfiguration.mockReturnValue(
 			mockConfiguration as never
 		);
-
-		const workspaceUri = new Uri();
-		workspaceUri.path = 'test';
-		workspaceUri.fsPath = 'test';
-		jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
-			uri: workspaceUri,
-		} as never);
-
+		
 		// We will never find the directory we are looking for
 		jest.mocked(workspace).fs.readFile.mockImplementation((uri) => {
 			return Promise.reject(new FileSystemError(uri));
@@ -257,7 +252,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: null,
@@ -283,7 +278,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: '',
@@ -310,7 +305,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: 'test-custom',
@@ -336,7 +331,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [],
 				standard: 'LITERAL',
@@ -344,15 +339,6 @@ describe('Configuration', () => {
 		});
 
 		describe('automatic', () => {
-			beforeEach(() => {
-				const workspaceUri = new Uri();
-				workspaceUri.path = 'test';
-				workspaceUri.fsPath = 'test';
-				jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
-					uri: workspaceUri,
-				} as never);
-			});
-
 			it('document directory', async () => {
 				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 					switch (uri.path) {
@@ -459,13 +445,6 @@ describe('Configuration', () => {
 			mockConfiguration as never
 		);
 
-		const workspaceUri = new Uri();
-		workspaceUri.path = 'test';
-		workspaceUri.fsPath = 'test';
-		jest.mocked(workspace).getWorkspaceFolder.mockReturnValue({
-			uri: workspaceUri,
-		} as never);
-
 		const promise = configuration.get(mockDocument, cancellationToken);
 
 		// Mock a cancellation so that resolution will reject.
@@ -494,7 +473,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.override',
 				exclude: [],
 				standard: null,
@@ -521,7 +500,7 @@ describe('Configuration', () => {
 				mockDocument
 			);
 			expect(result).toMatchObject({
-				workingDirectory: 'test/file',
+				workingDirectory: 'test',
 				executable: 'test.platform',
 				exclude: [
 					/^(?:test\/\\{test|test-test}\/(?!\.)(?=.)[^/]*?\.php)$/,

@@ -20,9 +20,11 @@ import { PHPCSError, Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
 import { LinterStatus } from '../linter-status';
+import { WorkspaceLocator } from '../workspace-locator';
 
 jest.mock('../logger');
 jest.mock('../linter-status');
+jest.mock('../workspace-locator');
 jest.mock('../configuration');
 jest.mock('../../phpcs-report/worker');
 jest.mock('../../phpcs-report/worker-pool');
@@ -42,6 +44,7 @@ jest.mock('../../types', () => {
 
 describe('DiagnosticUpdater', () => {
 	let mockLogger: Logger;
+	let mockWorkspaceLocator: WorkspaceLocator;
 	let mockConfiguration: Configuration;
 	let mockWorkerPool: WorkerPool;
 	let mockLinterStatus: LinterStatus;
@@ -60,7 +63,8 @@ describe('DiagnosticUpdater', () => {
 		);
 
 		mockLogger = new Logger(window);
-		mockConfiguration = new Configuration(workspace);
+		mockWorkspaceLocator = new WorkspaceLocator(workspace);
+		mockConfiguration = new Configuration(workspace, mockWorkspaceLocator);
 		mockWorkerPool = new WorkerPool(1);
 		mockLinterStatus = new LinterStatus(window);
 		mockDiagnosticCollection = new MockDiagnosticCollection();

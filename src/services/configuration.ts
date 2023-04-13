@@ -9,6 +9,7 @@ import {
 	workspace as vsCodeWorkspace,
 } from 'vscode';
 import { UriMap } from '../common/uri-map';
+import { WorkspaceLocator } from './workspace-locator';
 
 /**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
@@ -120,6 +121,11 @@ export class Configuration {
 	private readonly workspace: typeof vsCodeWorkspace;
 
 	/**
+	 * The locator we will use to look at the workspace.
+	 */
+	private readonly workspaceLocator: WorkspaceLocator;
+
+	/**
 	 * A cache containing all of the configurations we've loaded.
 	 */
 	private readonly cache: UriMap<DocumentConfiguration>;
@@ -133,9 +139,11 @@ export class Configuration {
 	 * Constructor.
 	 *
 	 * @param {workspace} workspace The VS Code workspace our configuration is in.
+	 * @param {WorkspaceLocator} workspaceLocator The locator we will use to look at the workspace.
 	 */
-	public constructor(workspace: typeof vsCodeWorkspace) {
+	public constructor(workspace: typeof vsCodeWorkspace, workspaceLocator: WorkspaceLocator) {
 		this.workspace = workspace;
+		this.workspaceLocator = workspaceLocator
 		this.cache = new UriMap();
 		this.textDecoder = new TextDecoder();
 	}
@@ -354,7 +362,7 @@ export class Configuration {
 		}
 
 		// We are only going to traverse as high as the workspace folder.
-		const workspaceFolder = this.getWorkspaceFolder(document);
+		const workspaceFolder = this.workspaceLocator.getWorkspaceFolderOrDefault(document.uri);
 
 		const parsed = await this.traverseWorkspaceFolders(
 			document.uri,
@@ -382,7 +390,7 @@ export class Configuration {
 		cancellationToken?: CancellationToken
 	): Promise<ParamsFromFilesystem> {
 		// The workspace folder for the document is our default working directory.
-		const workspaceFolder = this.getWorkspaceFolder(document);
+		const workspaceFolder = this.workspaceLocator.getWorkspaceFolderOrDefault(document.uri);
 
 		// Prepare the parameters that come from the filesystem.
 		const fsParams: ParamsFromFilesystem = {
@@ -404,30 +412,6 @@ export class Configuration {
 		}
 
 		return fsParams;
-	}
-
-	/**
-	 * Fetches the workspace folder of a document or the folder immediately enclosing the file.
-	 *
-	 * @param {TextDocument} document The document to check.
-	 */
-	private getWorkspaceFolder(document: TextDocument): Uri {
-		// When the file is in a workspace we should assume that is the working directory.
-		const folder = this.workspace.getWorkspaceFolder(document.uri);
-		if (folder) {
-			return folder.uri;
-		}
-
-		// Our next best option is the root path.
-		if (
-			this.workspace.workspaceFolders &&
-			this.workspace.workspaceFolders.length > 0
-		) {
-			return this.workspace.workspaceFolders[0].uri;
-		}
-
-		// When we can't infer a path just use the folder of the document.
-		return Uri.joinPath(document.uri, '..');
 	}
 
 	/**
