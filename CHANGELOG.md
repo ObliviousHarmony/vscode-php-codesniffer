@@ -8,10 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `Automatic` option for `phpCodeSniffer.standard` that searches for a coding standard file
 (`phpcs.xml`, `.phpcs.xml`, `phpcs.dist.xml`, `.phpcs.dist.xml`). The search begins in the
-document's folder and traverses through parent directories until it reaches the workspace root.
+document's folder and traverses through parent folders until it reaches the workspace root.
 - `phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows` options
 for platform-specific executables.
 - Support for execution on Windows without the use of WSL.
+
+### Changed
+- Even if `phpCodeSniffer.autoExecutable` is enabled, the working directory given to PHPCS should always be the workspace root.
+
+### Deprecated
+- `phpCodeSniffer.executable` has been deprecated in favor of platform-specific executable options.
 
 ### Fixed
 - Gracefully handle errors caused by an invalid PHPCS executable setting.

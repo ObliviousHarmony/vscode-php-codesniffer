@@ -47,14 +47,6 @@ export enum LintAction {
 }
 
 /**
- * An interface describing the path to an executable.
- */
-interface ExecutablePath {
-	workingDirectory: string;
-	executable: string;
-}
-
-/**
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
@@ -407,8 +399,7 @@ export class Configuration {
 			);
 
 			if (executable !== false) {
-				fsParams.workingDirectory = executable.workingDirectory;
-				fsParams.executable = executable.executable;
+				fsParams.executable = executable;
 			}
 		}
 
@@ -530,9 +521,7 @@ export class Configuration {
 	 *
 	 * @param {Uri} folder The folder we're checking for an executable in.
 	 */
-	private async findExecutableInFolder(
-		folder: Uri
-	): Promise<ExecutablePath | false> {
+	private async findExecutableInFolder(folder: Uri): Promise<string | false> {
 		try {
 			// We should be aware of custom vendor folders so that
 			// we can find the executable in the correct location.
@@ -565,10 +554,7 @@ export class Configuration {
 			await this.workspace.fs.stat(phpcsPath);
 
 			// The lack of an error indicates that the file exists.
-			return {
-				workingDirectory: folder.fsPath,
-				executable: phpcsPath.fsPath,
-			};
+			return phpcsPath.fsPath;
 		} catch (e) {
 			// Only errors from the filesystem are relevant.
 			if (!(e instanceof FileSystemError)) {
