@@ -15,14 +15,17 @@ import { DiagnosticUpdater } from '../diagnostic-updater';
 import {
 	MockDiagnosticCollection,
 	MockTextDocument,
+	Uri,
 } from '../../__mocks__/vscode';
 import { PHPCSError, Worker } from '../../phpcs-report/worker';
 import { ReportType, Response } from '../../phpcs-report/response';
 import { Logger } from '../../services/logger';
 import { LinterStatus } from '../linter-status';
+import { WorkspaceLocator } from '../workspace-locator';
 
 jest.mock('../logger');
 jest.mock('../linter-status');
+jest.mock('../workspace-locator');
 jest.mock('../configuration');
 jest.mock('../../phpcs-report/worker');
 jest.mock('../../phpcs-report/worker-pool');
@@ -42,6 +45,7 @@ jest.mock('../../types', () => {
 
 describe('DiagnosticUpdater', () => {
 	let mockLogger: Logger;
+	let mockWorkspaceLocator: WorkspaceLocator;
 	let mockConfiguration: Configuration;
 	let mockWorkerPool: WorkerPool;
 	let mockLinterStatus: LinterStatus;
@@ -60,7 +64,8 @@ describe('DiagnosticUpdater', () => {
 		);
 
 		mockLogger = new Logger(window);
-		mockConfiguration = new Configuration(workspace);
+		mockWorkspaceLocator = new WorkspaceLocator(workspace);
+		mockConfiguration = new Configuration(workspace, mockWorkspaceLocator);
 		mockWorkerPool = new WorkerPool(1);
 		mockLinterStatus = new LinterStatus(window);
 		mockDiagnosticCollection = new MockDiagnosticCollection();
@@ -68,6 +73,7 @@ describe('DiagnosticUpdater', () => {
 
 		diagnosticUpdater = new DiagnosticUpdater(
 			mockLogger,
+			mockWorkspaceLocator,
 			mockConfiguration,
 			mockWorkerPool,
 			mockLinterStatus,
@@ -87,8 +93,13 @@ describe('DiagnosticUpdater', () => {
 				return Promise.resolve(mockWorker);
 			}
 		);
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test-dir';
+		workspaceUri.fsPath = 'test-dir';
+		jest.mocked(
+			mockWorkspaceLocator
+		).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
@@ -97,8 +108,8 @@ describe('DiagnosticUpdater', () => {
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
+				workingDirectory: 'test-dir',
 				options: {
-					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
 					standard: 'PSR12',
 				},
@@ -144,8 +155,13 @@ describe('DiagnosticUpdater', () => {
 				return Promise.resolve(mockWorker);
 			}
 		);
+		const workspaceUri = new Uri();
+		workspaceUri.path = 'test-dir';
+		workspaceUri.fsPath = 'test-dir';
+		jest.mocked(
+			mockWorkspaceLocator
+		).getWorkspaceFolderOrDefault.mockReturnValue(workspaceUri);
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Change,
@@ -154,8 +170,8 @@ describe('DiagnosticUpdater', () => {
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
 				type: ReportType.Diagnostic,
+				workingDirectory: 'test-dir',
 				options: {
-					workingDirectory: 'test-dir',
 					executable: 'phpcs-test',
 					standard: 'PSR12',
 				},
@@ -178,7 +194,6 @@ describe('DiagnosticUpdater', () => {
 		document.fileName = 'test-document';
 
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [new RegExp('.*/file/.*')],
 			lintAction: LintAction.Change,
@@ -193,7 +208,6 @@ describe('DiagnosticUpdater', () => {
 		document.fileName = 'test-document';
 
 		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			workingDirectory: 'test-dir',
 			executable: 'phpcs-test',
 			exclude: [],
 			lintAction: LintAction.Save,

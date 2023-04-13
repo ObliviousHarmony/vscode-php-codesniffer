@@ -4,7 +4,6 @@ import { ReportType } from './response';
  * The request options for PHPCS.
  */
 export interface RequestOptions {
-	workingDirectory: string;
 	executable: string;
 	standard: string | null;
 }
@@ -49,6 +48,11 @@ export interface Request<T extends ReportType> {
 	 * The type of report that is being requested.
 	 */
 	type: T;
+
+	/**
+	 * The working directory for the workspace that the report is being generated for.
+	 */
+	workingDirectory: string;
 
 	/**
 	 * The filesystem path for the document that the report is being generated for.

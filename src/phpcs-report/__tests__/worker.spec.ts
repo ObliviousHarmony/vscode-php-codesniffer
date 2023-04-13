@@ -46,10 +46,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -68,10 +68,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -92,10 +92,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.CodeAction> = {
 			type: ReportType.CodeAction,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -132,10 +132,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Format> = {
 			type: ReportType.Format,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -154,10 +154,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -180,10 +180,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				executable: phpcsPath,
 				standard: 'PSR12',
 			},
@@ -201,10 +201,10 @@ describe('Worker', () => {
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
+			workingDirectory: __dirname,
 			documentPath: 'Test.php',
 			documentContent: '<?php class Test {}',
 			options: {
-				workingDirectory: __dirname,
 				// Since we use custom reports, adding `-s` for sources won't break anything.
 				executable: phpcsPath + ' -s',
 				standard: 'PSR12',

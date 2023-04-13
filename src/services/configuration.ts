@@ -9,6 +9,7 @@ import {
 	workspace as vsCodeWorkspace,
 } from 'vscode';
 import { UriMap } from '../common/uri-map';
+import { WorkspaceLocator } from './workspace-locator';
 
 /**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
@@ -47,18 +48,9 @@ export enum LintAction {
 }
 
 /**
- * An interface describing the path to an executable.
- */
-interface ExecutablePath {
-	workingDirectory: string;
-	executable: string;
-}
-
-/**
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
-	workingDirectory: string;
 	executable?: string;
 }
 
@@ -77,11 +69,6 @@ interface ParamsFromConfiguration {
  * An interface describing the shape of a document's configuration.
  */
 export interface DocumentConfiguration {
-	/**
-	 * The working directory we should use when executing reports.
-	 */
-	workingDirectory: string;
-
 	/**
 	 * The executable we should use in the worker.
 	 */
@@ -128,6 +115,11 @@ export class Configuration {
 	private readonly workspace: typeof vsCodeWorkspace;
 
 	/**
+	 * The locator we will use to look at the workspace.
+	 */
+	private readonly workspaceLocator: WorkspaceLocator;
+
+	/**
 	 * A cache containing all of the configurations we've loaded.
 	 */
 	private readonly cache: UriMap<DocumentConfiguration>;
@@ -141,9 +133,14 @@ export class Configuration {
 	 * Constructor.
 	 *
 	 * @param {workspace} workspace The VS Code workspace our configuration is in.
+	 * @param {WorkspaceLocator} workspaceLocator The locator we will use to look at the workspace.
 	 */
-	public constructor(workspace: typeof vsCodeWorkspace) {
+	public constructor(
+		workspace: typeof vsCodeWorkspace,
+		workspaceLocator: WorkspaceLocator
+	) {
 		this.workspace = workspace;
+		this.workspaceLocator = workspaceLocator;
 		this.cache = new UriMap();
 		this.textDecoder = new TextDecoder();
 	}
@@ -176,7 +173,6 @@ export class Configuration {
 
 		// Build and cache the document configuration to save time later.
 		config = {
-			workingDirectory: fromFilesystem.workingDirectory,
 			executable: fromFilesystem.executable ?? fromConfig.executable,
 			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
@@ -361,12 +357,8 @@ export class Configuration {
 				return standard;
 		}
 
-		// We are only going to traverse as high as the workspace folder.
-		const workspaceFolder = this.getWorkspaceFolder(document);
-
 		const parsed = await this.traverseWorkspaceFolders(
 			document.uri,
-			workspaceFolder,
 			(uri) => this.findCodingStandardFile(uri),
 			cancellationToken
 		);
@@ -389,54 +381,20 @@ export class Configuration {
 		findExecutable: boolean,
 		cancellationToken?: CancellationToken
 	): Promise<ParamsFromFilesystem> {
-		// The workspace folder for the document is our default working directory.
-		const workspaceFolder = this.getWorkspaceFolder(document);
-
-		// Prepare the parameters that come from the filesystem.
-		const fsParams: ParamsFromFilesystem = {
-			workingDirectory: workspaceFolder.fsPath,
-		};
-
 		// When an executable is requested we should attempt to populate the params with one.
 		if (findExecutable) {
 			const executable = await this.traverseWorkspaceFolders(
 				document.uri,
-				workspaceFolder,
 				(uri) => this.findExecutableInFolder(uri),
 				cancellationToken
 			);
 
 			if (executable !== false) {
-				fsParams.workingDirectory = executable.workingDirectory;
-				fsParams.executable = executable.executable;
+				return { executable };
 			}
 		}
 
-		return fsParams;
-	}
-
-	/**
-	 * Fetches the workspace folder of a document or the folder immediately enclosing the file.
-	 *
-	 * @param {TextDocument} document The document to check.
-	 */
-	private getWorkspaceFolder(document: TextDocument): Uri {
-		// When the file is in a workspace we should assume that is the working directory.
-		const folder = this.workspace.getWorkspaceFolder(document.uri);
-		if (folder) {
-			return folder.uri;
-		}
-
-		// Our next best option is the root path.
-		if (
-			this.workspace.workspaceFolders &&
-			this.workspace.workspaceFolders.length > 0
-		) {
-			return this.workspace.workspaceFolders[0].uri;
-		}
-
-		// When we can't infer a path just use the folder of the document.
-		return Uri.joinPath(document.uri, '..');
+		return {};
 	}
 
 	/**
@@ -444,16 +402,17 @@ export class Configuration {
 	 * a callback on each Uri until the caller finds what they are looking for.
 	 *
 	 * @param {Uri} documentUri The Uri of the document we are traversing from.
-	 * @param {Uri} workspaceFolder The workspace folder that is the highest we should traverse.
 	 * @param {FolderTraversalCallback} callback The callback to execute on each Uri in the traversal.
 	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
 	private async traverseWorkspaceFolders<T>(
 		documentUri: Uri,
-		workspaceFolder: Uri,
 		callback: FolderTraversalCallback<T>,
 		cancellationToken?: CancellationToken
 	): Promise<T | false> {
+		const workspaceFolder =
+			this.workspaceLocator.getWorkspaceFolderOrDefault(documentUri);
+
 		// Where we start the traversal will depend on the scheme of the document.
 		let folder: Uri;
 		switch (documentUri.scheme) {
@@ -530,9 +489,7 @@ export class Configuration {
 	 *
 	 * @param {Uri} folder The folder we're checking for an executable in.
 	 */
-	private async findExecutableInFolder(
-		folder: Uri
-	): Promise<ExecutablePath | false> {
+	private async findExecutableInFolder(folder: Uri): Promise<string | false> {
 		try {
 			// We should be aware of custom vendor folders so that
 			// we can find the executable in the correct location.
@@ -565,10 +522,7 @@ export class Configuration {
 			await this.workspace.fs.stat(phpcsPath);
 
 			// The lack of an error indicates that the file exists.
-			return {
-				workingDirectory: folder.fsPath,
-				executable: phpcsPath.fsPath,
-			};
+			return phpcsPath.fsPath;
 		} catch (e) {
 			// Only errors from the filesystem are relevant.
 			if (!(e instanceof FileSystemError)) {

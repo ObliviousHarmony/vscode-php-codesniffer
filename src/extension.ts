@@ -17,6 +17,7 @@ import { DiagnosticUpdater } from './services/diagnostic-updater';
 import { DocumentFormatter } from './services/document-formatter';
 import { Logger } from './services/logger';
 import { LinterStatus } from './services/linter-status';
+import { WorkspaceLocator } from './services/workspace-locator';
 
 export function activate(context: ExtensionContext): void {
 	// We will store all of the diagnostics and code actions
@@ -29,10 +30,12 @@ export function activate(context: ExtensionContext): void {
 	// Create all of our dependencies.
 	const logger = new Logger(window);
 	const linterStatus = new LinterStatus(window);
-	const configuration = new Configuration(workspace);
+	const workspaceLocator = new WorkspaceLocator(workspace);
+	const configuration = new Configuration(workspace, workspaceLocator);
 	const workerPool = new WorkerPool(10);
 	const diagnosticUpdater = new DiagnosticUpdater(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool,
 		linterStatus,
@@ -41,11 +44,13 @@ export function activate(context: ExtensionContext): void {
 	);
 	const codeActionEditResolver = new CodeActionEditResolver(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool
 	);
 	const documentFormatter = new DocumentFormatter(
 		logger,
+		workspaceLocator,
 		configuration,
 		workerPool
 	);

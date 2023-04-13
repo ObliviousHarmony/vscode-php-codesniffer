@@ -47,10 +47,10 @@ describe('Worker/WorkerPool Integration', () => {
 		const promise = pool.waitForAvailable('test').then((worker) => {
 			const request: Request<ReportType.Diagnostic> = {
 				type: ReportType.Diagnostic,
+				workingDirectory: __dirname,
 				documentPath: 'Test.php',
 				documentContent: '<?php class Test {}',
 				options: {
-					workingDirectory: __dirname,
 					executable: phpcsPath,
 					standard: 'PSR12',
 				},
@@ -75,10 +75,10 @@ describe('Worker/WorkerPool Integration', () => {
 		const promise = pool.waitForAvailable('test').then((worker) => {
 			const request: Request<ReportType.Diagnostic> = {
 				type: ReportType.Diagnostic,
+				workingDirectory: __dirname,
 				documentPath: 'Test.php',
 				documentContent: '<?php class Test {}',
 				options: {
-					workingDirectory: __dirname,
 					executable: phpcsPath,
 					standard: 'PSR12',
 				},

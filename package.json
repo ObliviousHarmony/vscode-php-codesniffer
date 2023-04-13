@@ -42,7 +42,7 @@
       "properties": {
         "phpCodeSniffer.autoExecutable": {
           "type": "boolean",
-          "markdownDescription": "Attempts to find `bin/phpcs` in the file directory and parent directories' vendor directory before falling back to the platform-specific executable.",
+          "markdownDescription": "Attempts to find `bin/phpcs` in the file folder and parent directories' vendor folder before falling back to the platform-specific executable.",
           "default": false,
           "scope": "resource"
         },
@@ -107,7 +107,7 @@
           "enumDescriptions": [
             "Disables the PHP_CodeSniffer extension's linting.",
             "Allows PHPCS to decide the coding standard.",
-            "Searches for a coding standard configuration file in the current document's directory and parent directories.",
+            "Searches for a coding standard configuration file in the current document's folder and parent directories.",
             "Uses the PEAR coding standard.",
             "Uses the MySource coding standard.",
             "Uses the Squiz coding standard.",

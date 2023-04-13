@@ -205,6 +205,7 @@ export class Worker {
 
 		// Prepare the options for the PHPCS process.
 		const processOptions: SpawnOptionsWithoutStdio = {
+			cwd: request.workingDirectory,
 			env: {
 				...process.env,
 				// Pass the request data using environment vars.
@@ -215,11 +216,6 @@ export class Worker {
 			},
 			windowsHide: true,
 		};
-
-		// Give the working directory when requested.
-		if (request.options.workingDirectory) {
-			processOptions.cwd = request.options.workingDirectory;
-		}
 
 		// Make sure PHPCS knows to read from STDIN.
 		processArguments.push('-');
