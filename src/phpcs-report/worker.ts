@@ -1,7 +1,6 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { resolve as resolvePath } from 'path';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
-import { StandardType } from '../services/configuration';
 import { Request } from './request';
 import { ReportType, Response } from './response';
 
@@ -93,7 +92,7 @@ export class Worker {
 		return new Promise<Response<T>>((resolve, reject) => {
 			// Under certain circumstances we shouldn't bother generating a report because it will be empty.
 			if (
-				request.options.standard === 'Disabled' ||
+				!request.options.standard ||
 				request.documentContent.length <= 0
 			) {
 				resolve(Response.empty(request.type));
@@ -200,7 +199,7 @@ export class Worker {
 		processArguments.unshift(...executableMatches);
 
 		// Only set the standard when the user has selected one.
-		if (request.options.standard !== StandardType.Default) {
+		if (request.options.standard) {
 			processArguments.push('--standard=' + request.options.standard);
 		}
 

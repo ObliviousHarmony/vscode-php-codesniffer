@@ -12,10 +12,24 @@ _**Until you configure it, this extension will not lint any files.**_
 
 ### Standard (`phpCodeSniffer.standard`)
 
-This dropdown and accompanying text input allow you to define the standard or ruleset path to use. When set to
-`Default` we rely on PHPCS to decide on the standard based on its own configuration. When set to `Custom` we
-pass the content of `phpCodeSniffer.standardCustom` to PHPCS; allowing you to define a custom rulset name or
-use an XML file.
+This dropdown selects the coding standard that will be used. There are a few options that, when selected, will instead change the behavior of the extension.
+
+#### `Disabled`
+
+This option will prevent the extension from linting any documents.
+
+#### `Default`
+
+Allow PHPCS to decide what standard should apply to the document. It will either use the default standard if one is configured, otherwise, it will try to find one in the workspace root and all parent directories.
+
+#### `Automatic`
+
+When selected, this option will cause the extension to search for an applicable coding standard file (`.phpcs.xml`, `phpcs.xml`, `.phpcs.xml.dist`, `phpcs.xml.dist`). The extension starts in the document's directory and traverses through parent directories until it reaches the workspace root. If the extension fails to find a file it will do nothing and output an error.
+
+#### `Custom`
+
+This option will use the content of the `phpCodeSniffer.standardCustom` input as the standard. This can be the name of a custom ruleset, or, a path to a custom standard file. If a relative path is given it will be based
+on the workspace root that the document resides in (untitled documents use the first root).
 
 ### Executable (`phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows`)
 

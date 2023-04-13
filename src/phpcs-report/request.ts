@@ -6,7 +6,7 @@ import { ReportType } from './response';
 export interface RequestOptions {
 	workingDirectory: string;
 	executable: string;
-	standard: string;
+	standard: string | null;
 }
 
 /**

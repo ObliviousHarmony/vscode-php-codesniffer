@@ -1,7 +1,6 @@
 import * as child_process from 'child_process';
 import { resolve as resolvePath } from 'path';
 import { CancellationError } from 'vscode';
-import { StandardType } from '../../services/configuration';
 import { MockCancellationToken } from '../../__mocks__/vscode';
 import { Request } from '../request';
 import { ReportType } from '../response';
@@ -52,7 +51,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: null,
 		};
@@ -74,7 +73,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: null,
 		};
@@ -98,7 +97,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: {
 				code: 'PSR12.Files.OpenTag.NotAlone',
@@ -138,7 +137,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: {},
 		};
@@ -160,7 +159,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: null,
 		};
@@ -186,7 +185,7 @@ describe('Worker', () => {
 			options: {
 				workingDirectory: __dirname,
 				executable: phpcsPath,
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: null,
 		};
@@ -208,7 +207,7 @@ describe('Worker', () => {
 				workingDirectory: __dirname,
 				// Since we use custom reports, adding `-s` for sources won't break anything.
 				executable: phpcsPath + ' -s',
-				standard: StandardType.PSR12,
+				standard: 'PSR12',
 			},
 			data: null,
 		};

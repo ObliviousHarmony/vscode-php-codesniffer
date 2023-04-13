@@ -5,7 +5,11 @@ import {
 	window as vsCodeWindow,
 	workspace as vsCodeWorkspace,
 } from 'vscode';
-import { Configuration, LintAction } from '../services/configuration';
+import {
+	Configuration,
+	LintAction,
+	AutomaticCodingStandardFilenames,
+} from '../services/configuration';
 import { CodeActionEditResolver } from '../services/code-action-edit-resolver';
 import { DiagnosticUpdater } from '../services/diagnostic-updater';
 import { DocumentFormatter } from '../services/document-formatter';
@@ -145,7 +149,7 @@ export class WorkspaceListener implements Disposable {
 		// We're going to be watching for filesystem events on PHPCS executables.
 		// This will allow us to take action when an executable we're using is no
 		// longer available as well as when a new executable becomes available.
-		const watcher = workspace.createFileSystemWatcher(
+		let watcher = workspace.createFileSystemWatcher(
 			'**/bin/phpcs',
 			false,
 			true,
@@ -154,6 +158,25 @@ export class WorkspaceListener implements Disposable {
 		this.subscriptions.push(watcher);
 		watcher.onDidCreate((e) => this.onExecutableChange(workspace, e));
 		watcher.onDidDelete((e) => this.onExecutableChange(workspace, e));
+
+		// We're also going to be watching for filesystem events on coding standard
+		// files. This will allow us to take action when the coding standard may
+		// no longer apply and needs to be re-evaluated.
+		const codingStandardFilenameGlob =
+			AutomaticCodingStandardFilenames.join(',');
+		watcher = workspace.createFileSystemWatcher(
+			'**/{' + codingStandardFilenameGlob + '}'
+		);
+		this.subscriptions.push(watcher);
+		watcher.onDidCreate((e) =>
+			this.onCodingStandardFileChange(workspace, e)
+		);
+		watcher.onDidChange((e) =>
+			this.onCodingStandardFileChange(workspace, e)
+		);
+		watcher.onDidDelete((e) =>
+			this.onCodingStandardFileChange(workspace, e)
+		);
 	}
 
 	/**
@@ -246,6 +269,48 @@ export class WorkspaceListener implements Disposable {
 		const workspaceFolder = workspace.getWorkspaceFolder(executable);
 		if (!workspaceFolder) {
 			throw new Error('No workspace found for executable.');
+		}
+
+		const folderString = workspaceFolder.uri.toString();
+
+		// Since the cache may be invalid now we should update all of the documents
+		// that might be affected by this change.
+		for (const document of workspace.textDocuments) {
+			// Only update documents we're tracking.
+			if (!this.trackedDocuments.has(document.uri)) {
+				continue;
+			}
+
+			// Only affect documents in the workspace folder.
+			const documentString = document.uri.toString();
+			if (!documentString.startsWith(folderString)) {
+				continue;
+			}
+
+			// Clear the cache since its executable may have been affected.
+			this.configuration.clearCache(document);
+
+			// Don't allow for overlapping requests.
+			this.diagnosticUpdater.cancel(document);
+
+			// Update the diagnostics for the document.
+			this.diagnosticUpdater.update(document, LintAction.Force);
+		}
+	}
+
+	/**
+	 * A callback for  executables being created or deleted.
+	 *
+	 * @param {workspace} workspace The workspace the file is part of.
+	 * @param {Uri} codingStandard The Uri for the coding standard that has changed.
+	 */
+	private onCodingStandardFileChange(
+		workspace: typeof vsCodeWorkspace,
+		codingStandard: Uri
+	): void {
+		const workspaceFolder = workspace.getWorkspaceFolder(codingStandard);
+		if (!workspaceFolder) {
+			throw new Error('No workspace found for coding standard.');
 		}
 
 		const folderString = workspaceFolder.uri.toString();

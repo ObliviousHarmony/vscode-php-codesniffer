@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- `Automatic` option for `phpCodeSniffer.standard` that searches for a coding standard file
+(`phpcs.xml`, `.phpcs.xml`, `phpcs.dist.xml`, `.phpcs.dist.xml`). The search begins in the
+document's folder and traverses through parent directories until it reaches the workspace root.
 - `phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows` options
 for platform-specific executables.
 - Support for execution on Windows without the use of WSL.
@@ -73,7 +76,7 @@ for platform-specific executables.
 
 ## [0.4.0] - 2021-02-21
 ### Added
-- Automatically attempt to find a `bin/phpcs` file in a vendor directory when `phpCodeSniffer.autoExecutable` is enabled.
+- Automatically attempt to find a `bin/phpcs` file in a vendor folder when `phpCodeSniffer.autoExecutable` is enabled.
 - Display PHPCS errors to the user.
 - Check document version before unnecessarily rebuilding diagnostics.
 
