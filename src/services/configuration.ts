@@ -10,7 +10,6 @@ import {
 } from 'vscode';
 import { UriMap } from '../common/uri-map';
 import { WorkspaceLocator } from './workspace-locator';
-import { Logger } from './logger';
 
 /**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
