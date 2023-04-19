@@ -7,7 +7,7 @@ import {
 } from 'vscode';
 import { CodeAction, CodeActionCollection } from '../types';
 import { IgnoreLineCommand } from '../commands/ignore-line-command';
-import { Configuration, LintAction } from './configuration';
+import { Configuration, ConfigurationError, LintAction } from './configuration';
 import { Logger } from './logger';
 import { Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
@@ -206,6 +206,12 @@ export class DiagnosticUpdater extends WorkerService {
 
 				// Let the status know we're not linting the document anymore.
 				this.linterStatus.stop(document.uri);
+
+				// Configuration errors should be logged and presented to the user.
+				if (e instanceof ConfigurationError) {
+					this.logger.error(e);
+					return;
+				}
 
 				// Updates can be prevented in expected ways, so this error is acceptable.
 				if (e instanceof UpdatePreventedError) {

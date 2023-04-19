@@ -1,5 +1,6 @@
 import { Disposable, OutputChannel, window as vsCodeWindow } from 'vscode';
 import { PHPCSError } from '../phpcs-report/worker';
+import { ConfigurationError } from './configuration';
 
 /**
  * A logger for presenting errors to the user.
@@ -38,6 +39,14 @@ export class Logger implements Disposable {
 	 * @param {Error} error The error to log.
 	 */
 	public error(error: Error): void {
+		// Users should be informed of errors with their configuration.
+		if (error instanceof ConfigurationError) {
+			this.window.showErrorMessage(error.message);
+			this.outputChannel.show(true);
+			this.writeMessage(error.message);
+			return;
+		}
+
 		// Users should be informed of PHPCS errors.
 		if (error instanceof PHPCSError) {
 			this.window.showErrorMessage(error.message);
