@@ -117,7 +117,12 @@ export class ConfigurationError extends Error {
 	 * @param {string} message The message for the error.
 	 */
 	public constructor(configurationKey: string, message: string) {
-		super('Configuration "phpCodeSniffer.' + configurationKey + '" Error: ' + message);
+		super(
+			'Configuration "phpCodeSniffer.' +
+				configurationKey +
+				'" Error: ' +
+				message
+		);
 
 		this.configurationKey = configurationKey;
 		this.errorMessage = message;
@@ -282,10 +287,7 @@ export class Configuration {
 
 		const excludePatterns = config.get<string[]>('exclude');
 		if (!Array.isArray(excludePatterns)) {
-			throw new ConfigurationError(
-				'exclude',
-				'Value must be an array.'
-			);
+			throw new ConfigurationError('exclude', 'Value must be an array.');
 		}
 
 		// Parse the glob patterns into a format we can use.
@@ -402,7 +404,9 @@ export class Configuration {
 		if (parsed === false) {
 			throw new ConfigurationError(
 				'standard',
-				'Failed to locate a PHPCS configuration file for "' + document.uri.fsPath + '".'
+				'Failed to locate a PHPCS configuration file for "' +
+					document.uri.fsPath +
+					'".'
 			);
 		}
 
