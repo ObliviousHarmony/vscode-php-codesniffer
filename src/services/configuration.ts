@@ -101,8 +101,8 @@ type FolderTraversalCallback<T> = (folderUri: Uri) => Promise<T | false>;
 export const AutomaticCodingStandardFilenames = [
 	'phpcs.xml',
 	'.phpcs.xml',
-	'phpcs.dist.xml',
-	'.phpcs.dist.xml',
+	'phpcs.xml.dist',
+	'.phpcs.xml.dist',
 ];
 
 /**
@@ -363,7 +363,9 @@ export class Configuration {
 			cancellationToken
 		);
 		if (parsed === false) {
-			return null;
+			throw new Error(
+				'The extension failed to automatically find a PHPCS configuration file.'
+			);
 		}
 
 		return parsed;
