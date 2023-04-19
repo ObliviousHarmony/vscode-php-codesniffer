@@ -9,6 +9,7 @@ import { FormatRequest, Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
 import { PHPCSError } from '../phpcs-report/worker';
 import { WorkerService } from './worker-service';
+import { ConfigurationError } from './configuration';
 
 /**
  * A class for formatting documents and document ranges.
@@ -99,6 +100,12 @@ export class DocumentFormatter extends WorkerService {
 			.catch((e) => {
 				// Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
 				if (e instanceof CancellationError) {
+					return [];
+				}
+
+				// Configuration errors should be logged and presented to the user.
+				if (e instanceof ConfigurationError) {
+					this.logger.error(e);
 					return [];
 				}
 

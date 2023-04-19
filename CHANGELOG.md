@@ -5,13 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Display messages for configuration errors.
+
 ### Fixed
+- Detect `phpcs.xml.dist` and `.phpcs.xml.dist` configuration files.
 - Detection of filesystem root when traversing paths on Windows.
 
 ## [2.0.0] - 2023-04-13
 ### Added
 - `Automatic` option for `phpCodeSniffer.standard` that searches for a coding standard file
-(`phpcs.xml`, `.phpcs.xml`, `phpcs.dist.xml`, `.phpcs.dist.xml`). The search begins in the
+(`phpcs.xml`, `.phpcs.xml`, `phpcs.xml.dist`, `.phpcs.xml.dist`). The search begins in the
 document's folder and traverses through parent folders until it reaches the workspace root.
 - `phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows` options
 for platform-specific executables.

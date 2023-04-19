@@ -378,8 +378,8 @@ describe('Configuration', () => {
 					switch (uri.path) {
 						case 'test/file/phpcs.xml':
 						case 'test/file/.phpcs.xml':
-						case 'test/file/phpcs.dist.xml':
-						case 'test/file/.phpcs.dist.xml':
+						case 'test/file/phpcs.xml.dist':
+						case 'test/file/.phpcs.xml.dist':
 							return Promise.reject(new FileSystemError(uri));
 
 						// Ignore the first filename to also test the other possible filenames.
