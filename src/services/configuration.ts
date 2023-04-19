@@ -10,6 +10,7 @@ import {
 } from 'vscode';
 import { UriMap } from '../common/uri-map';
 import { WorkspaceLocator } from './workspace-locator';
+import { Logger } from './logger';
 
 /**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
@@ -94,6 +95,34 @@ export interface DocumentConfiguration {
  * The type for the callback used when traversing workspace folders.
  */
 type FolderTraversalCallback<T> = (folderUri: Uri) => Promise<T | false>;
+
+/**
+ * A custom error type for those that come from PHPCS.
+ */
+export class ConfigurationError extends Error {
+	/**
+	 * The configuration key the error is for.
+	 */
+	public readonly configurationKey: string;
+
+	/**
+	 * The error message for the configuration key.
+	 */
+	public readonly errorMessage: string;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param {string} configurationKey The configuration key the error is for.
+	 * @param {string} message The message for the error.
+	 */
+	public constructor(configurationKey: string, message: string) {
+		super('Configuration "phpCodeSniffer.' + configurationKey + '" Error: ' + message);
+
+		this.configurationKey = configurationKey;
+		this.errorMessage = message;
+	}
+}
 
 /**
  * The valid filenames we look for when automatically searching for coding standards.
@@ -212,13 +241,17 @@ export class Configuration {
 			document
 		);
 		if (!config) {
-			throw new Error('The extension has no configuration.');
+			throw new ConfigurationError(
+				'phpCodeSniffer',
+				'The extension has no configuration.'
+			);
 		}
 
 		const autoExecutable = config.get<boolean>('autoExecutable');
 		if (autoExecutable === undefined) {
-			throw new Error(
-				'The extension has an invalid `phpCodeSniffer.autoExecutable` configuration.'
+			throw new ConfigurationError(
+				'autoExecutable',
+				'Value must be a boolean.'
 			);
 		}
 
@@ -237,10 +270,9 @@ export class Configuration {
 		}
 		const platformExecutable = config.get<string>(executableSetting);
 		if (platformExecutable === undefined) {
-			throw new Error(
-				'The extension has an invalid `' +
-					executableSetting +
-					'` configuration.'
+			throw new ConfigurationError(
+				executableSetting,
+				'Value must be a string.'
 			);
 		}
 
@@ -250,8 +282,9 @@ export class Configuration {
 
 		const excludePatterns = config.get<string[]>('exclude');
 		if (!Array.isArray(excludePatterns)) {
-			throw new Error(
-				'The extension has an invalid `phpCodeSniffer.exclude` configuration.'
+			throw new ConfigurationError(
+				'exclude',
+				'Value must be an array.'
 			);
 		}
 
@@ -273,8 +306,9 @@ export class Configuration {
 		);
 		if (deprecatedIgnorePatterns) {
 			if (!Array.isArray(deprecatedIgnorePatterns)) {
-				throw new Error(
-					'The extension has an invalid `phpCodeSniffer.ignorePatterns` configuration.'
+				throw new ConfigurationError(
+					'ignorePatterns',
+					'Value must be an array'
 				);
 			}
 
@@ -283,8 +317,9 @@ export class Configuration {
 
 		const lintAction = config.get<LintAction>('lintAction');
 		if (lintAction === undefined) {
-			throw new Error(
-				'The extension has an invalid `phpCodeSniffer.lintAction` configuration.'
+			throw new ConfigurationError(
+				'lintAction',
+				'Value must be a valid lint action.'
 			);
 		}
 
@@ -294,8 +329,9 @@ export class Configuration {
 			'standard'
 		);
 		if (rawStandard === undefined) {
-			throw new Error(
-				'The extension has an invalid `phpCodeSniffer.standard` configuration.'
+			throw new ConfigurationError(
+				'standard',
+				'Value must be a valid standard option.'
 			);
 		}
 		const standard = await this.parseStandard(
@@ -341,8 +377,9 @@ export class Configuration {
 
 			case SpecialStandardOptions.Custom:
 				if (!customStandard) {
-					throw new Error(
-						'The extension has an empty `phpCodeSniffer.standardCustom` configuration.'
+					throw new ConfigurationError(
+						'customStandard',
+						'Must be a string when using a custom standard.'
 					);
 				}
 
@@ -363,8 +400,9 @@ export class Configuration {
 			cancellationToken
 		);
 		if (parsed === false) {
-			throw new Error(
-				'The extension failed to automatically find a PHPCS configuration file.'
+			throw new ConfigurationError(
+				'standard',
+				'Failed to locate a PHPCS configuration file for "' + document.uri.fsPath + '".'
 			);
 		}
 

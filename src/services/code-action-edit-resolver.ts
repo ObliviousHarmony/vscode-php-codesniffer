@@ -4,6 +4,7 @@ import { Request } from '../phpcs-report/request';
 import { ReportType } from '../phpcs-report/response';
 import { WorkerService } from './worker-service';
 import { PHPCSError } from '../phpcs-report/worker';
+import { ConfigurationError } from './configuration';
 
 /**
  * A class for resolving edits for code actions.
@@ -96,6 +97,12 @@ export class CodeActionEditResolver extends WorkerService {
 			.catch((e) => {
 				// Cancellation errors are acceptable as they mean we've just repeated the update before it completed.
 				if (e instanceof CancellationError) {
+					return codeAction;
+				}
+
+				// Configuration errors should be logged and presented to the user.
+				if (e instanceof ConfigurationError) {
+					this.logger.error(e);
 					return codeAction;
 				}
 
