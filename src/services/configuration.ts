@@ -474,9 +474,8 @@ export class Configuration {
 				return false;
 		}
 
-		// Only traverse as far as the workspace folder. We don't
-		// want to accidentally check folders outside of it.
-		while (folder.path !== '/') {
+		// When we reach the filesystem root we have no reason to keep searching.
+		while (!folder.path.match(/^(?:[a-z]:)?\/$/i)) {
 			// When the request is cancelled, we don't want to keep looking.
 			if (cancellationToken?.isCancellationRequested) {
 				throw new CancellationError();

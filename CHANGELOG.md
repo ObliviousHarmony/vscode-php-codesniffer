@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Detect `phpcs.xml.dist` and `.phpcs.xml.dist` configuration files.
+- Detection of filesystem root when traversing paths on Windows.
 
 ## [2.0.0] - 2023-04-13
 ### Added
