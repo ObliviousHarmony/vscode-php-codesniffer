@@ -39,6 +39,10 @@ Uri.joinPath = jest
 			uriSegments.push(seg);
 		}
 
+		if (uriSegments.length <= 0) {
+			uriSegments.push(process.platform === 'win32' ? 'c:/' : '/');
+		}
+
 		const path = uriSegments.join('/');
 
 		const created = {
