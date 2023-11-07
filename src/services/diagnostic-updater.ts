@@ -111,18 +111,6 @@ export class DiagnosticUpdater extends WorkerService {
 		this.configuration
 			.get(document, cancellationToken)
 			.then((configuration) => {
-				// Check the file's path against our exclude patterns so that we don't process
-				// diagnostics for files that the user is not interested in receiving them for.
-				for (const pattern of configuration.exclude) {
-					if (pattern.test(document.uri.fsPath)) {
-						// When an open file wasn't excluded at first but becomes excluded, it will leave
-						// behind diagnostics and code actions. To avoid this, let's always clear the
-						// data for documents that are excluded from diagnostic processing.
-						this.clearDocument(document);
-						throw new UpdatePreventedError();
-					}
-				}
-
 				// Allow users to decide when the diagnostics are updated.
 				switch (lintAction) {
 					case LintAction.Change:

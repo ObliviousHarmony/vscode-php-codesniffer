@@ -334,6 +334,34 @@ describe('Configuration', () => {
 		});
 
 		describe('automatic', () => {
+			it('ignore excluded files', async () => {
+				const mockConfiguration = {
+					get: jest.fn().mockImplementation(
+						getDefaultConfiguration({
+							standard: SpecialStandardOptions.Automatic,
+							exclude: ['**/*'],
+						})
+					),
+				};
+				jest.mocked(workspace).getConfiguration.mockReturnValue(
+					mockConfiguration as never
+				);
+
+				const result = await configuration.get(mockDocument);
+
+				expect(workspace.getConfiguration).toHaveBeenCalledWith(
+					'phpCodeSniffer',
+					mockDocument
+				);
+				expect(result).toMatchObject({
+					executable: 'test.platform',
+					exclude: [
+						/^(?:(?:\/|(?:(?!(?:\/|^)\.).)*?\/)?(?!\.)(?=.)[^/]*?)$/,
+					],
+					standard: null,
+				});
+			});
+
 			it('document folder', async () => {
 				jest.mocked(workspace).fs.stat.mockImplementation((uri) => {
 					switch (uri.path) {
