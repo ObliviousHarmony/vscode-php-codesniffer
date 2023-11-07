@@ -90,11 +90,16 @@ export class Worker {
 		}
 
 		return new Promise<Response<T>>((resolve, reject) => {
-			// Under certain circumstances we shouldn't bother generating a report because it will be empty.
-			if (
-				!request.options.standard ||
-				request.documentContent.length <= 0
-			) {
+			// The absolute lack of a standard indicates that the worker shouldn't run.
+			if (request.options.standard === null) {
+				this.onCompletion?.(this);
+				resolve(Response.empty(request.type));
+				return;
+			}
+
+			// We can save time by not running the worker if there is no content.
+			if (request.documentContent.length <= 0) {
+				this.onCompletion?.(this);
 				resolve(Response.empty(request.type));
 				return;
 			}
