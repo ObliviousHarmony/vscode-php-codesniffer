@@ -5,11 +5,11 @@ import { CancellationError } from 'vscode';
 
 jest.mock('../worker', () => {
 	return {
-		Worker: jest.fn().mockImplementation((onActiveChanged) => {
+		Worker: jest.fn().mockImplementation((onCompletion) => {
 			const obj = {
 				execute: jest.fn(),
 				isActive: false,
-				onActiveChanged,
+				onCompletion,
 			};
 
 			return obj;
@@ -42,7 +42,7 @@ describe('WorkerPool', () => {
 
 		// Change the active status and trigger the resolution.
 		mockWorker.isActive = false;
-		mockWorker.onActiveChanged(mockWorker);
+		mockWorker.onCompletion(mockWorker);
 
 		return expect(promise).resolves.toStrictEqual(
 			jest.mocked(Worker).mock.results[0].value
@@ -84,7 +84,7 @@ describe('WorkerPool', () => {
 
 		// Change the active status and trigger the resolution.
 		mockWorker.isActive = false;
-		mockWorker.onActiveChanged(mockWorker);
+		mockWorker.onCompletion(mockWorker);
 
 		try {
 			await promise;

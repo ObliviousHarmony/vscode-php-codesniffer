@@ -5,12 +5,12 @@ import { Request } from './request';
 import { ReportType, Response } from './response';
 
 /**
- * A callback to execute when a worker's active status changes.
+ * A callback to execute when the worker has completed its task.
  *
- * @callback ActiveChangedCallback
- * @param {Worker} worker The worker that had its status changed.
+ * @callback CompletionCallback
+ * @param {Worker} worker The worker that has completed its task.
  */
-type ActiveChangedCallback = (worker: Worker) => void;
+type CompletionCallback = (worker: Worker) => void;
 
 /**
  * A custom error type for those that come from PHPCS.
@@ -47,7 +47,7 @@ export class Worker {
 	/**
 	 * A callback to execute when a worker's active status changes.
 	 */
-	private readonly onActiveChanged?: ActiveChangedCallback;
+	private readonly onCompletion?: CompletionCallback;
 
 	/**
 	 * The current process if the worker is active.
@@ -69,10 +69,10 @@ export class Worker {
 	/**
 	 * Constructor.
 	 *
-	 * @param {ActiveChangedCallback} [onActiveChanged] A callback to execute when a worker's active status changes.
+	 * @param {CompletionCallback} [onCompletion] A callback to execute when a worker has completed its task.
 	 */
-	public constructor(onActiveChanged?: ActiveChangedCallback) {
-		this.onActiveChanged = onActiveChanged;
+	public constructor(onCompletion?: CompletionCallback) {
+		this.onCompletion = onCompletion;
 	}
 
 	/**
@@ -90,11 +90,16 @@ export class Worker {
 		}
 
 		return new Promise<Response<T>>((resolve, reject) => {
-			// Under certain circumstances we shouldn't bother generating a report because it will be empty.
-			if (
-				!request.options.standard ||
-				request.documentContent.length <= 0
-			) {
+			// The absolute lack of a standard indicates that the worker shouldn't run.
+			if (request.options.standard === null) {
+				this.onCompletion?.(this);
+				resolve(Response.empty(request.type));
+				return;
+			}
+
+			// We can save time by not running the worker if there is no content.
+			if (request.documentContent.length <= 0) {
+				this.onCompletion?.(this);
 				resolve(Response.empty(request.type));
 				return;
 			}
@@ -113,9 +118,6 @@ export class Worker {
 			// The requester will receive the report when it is finished.
 			this.activeProcess = this.createProcess(request, resolve, reject);
 
-			// The worker is no longer available.
-			this.onActiveChanged?.(this);
-
 			// When the process closes we should clean up the worker and prepare it for a fresh execution.
 			this.activeProcess.on('close', () => {
 				if (cancellationHandler) {
@@ -125,7 +127,7 @@ export class Worker {
 				delete this.activeProcess;
 
 				// The worker should broadcast its availability.
-				this.onActiveChanged?.(this);
+				this.onCompletion?.(this);
 			});
 		});
 	}

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Workers should still be freed when PHPCS does not run.
 - Clear diagnostics when exceptions are thrown while updating them.
 - Clear diagnostics on configuration changes.
 
