@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Clear diagnostics when exceptions are thrown while updating them.
+
 ## [2.1.0] - 2023-04-19
 ### Added
 - Display messages for configuration errors.

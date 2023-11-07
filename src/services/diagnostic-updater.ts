@@ -207,14 +207,18 @@ export class DiagnosticUpdater extends WorkerService {
 				// Let the status know we're not linting the document anymore.
 				this.linterStatus.stop(document.uri);
 
-				// Configuration errors should be logged and presented to the user.
-				if (e instanceof ConfigurationError) {
-					this.logger.error(e);
+				// Updates can be prevented in expected ways, so this error is acceptable.
+				if (e instanceof UpdatePreventedError) {
 					return;
 				}
 
-				// Updates can be prevented in expected ways, so this error is acceptable.
-				if (e instanceof UpdatePreventedError) {
+				// When an unacceptable error is thrown we need to clear the document that way
+				// diagnostic information that is not valid is not left behind.
+				this.clearDocument(document);
+
+				// Configuration errors should be logged and presented to the user.
+				if (e instanceof ConfigurationError) {
+					this.logger.error(e);
 					return;
 				}
 
