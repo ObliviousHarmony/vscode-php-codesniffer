@@ -44,3 +44,16 @@ fall back to the explicit option.
 
 This array of glob patterns allows you to exclude files and folders from linting. While the extension **does** respect
 any file rules in your coding standard, this option allows you to define additional rules.
+
+### Autofix on Save
+
+Rather than providing an option here, this extension encourages you to use the built-in VS Code `editor.formatOnSave` option:
+
+```json
+{
+    "[php]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "obliviousharmony.vscode-php-codesniffer"
+    }
+}
+```
