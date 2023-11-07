@@ -189,20 +189,6 @@ describe('DiagnosticUpdater', () => {
 		diagnosticUpdater.update(document, LintAction.Force);
 	});
 
-	it('should respect exclude patterns', () => {
-		const document = new MockTextDocument();
-		document.fileName = 'test-document';
-
-		jest.mocked(mockConfiguration).get.mockResolvedValue({
-			executable: 'phpcs-test',
-			exclude: [new RegExp('.*/file/.*')],
-			lintAction: LintAction.Change,
-			standard: 'PSR12',
-		});
-
-		return diagnosticUpdater.update(document, LintAction.Force);
-	});
-
 	it('should not update on change when configured to save', () => {
 		const document = new MockTextDocument();
 		document.fileName = 'test-document';

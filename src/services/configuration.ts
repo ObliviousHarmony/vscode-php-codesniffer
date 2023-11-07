@@ -337,6 +337,7 @@ export class Configuration {
 		}
 		const standard = await this.parseStandard(
 			document,
+			exclude,
 			rawStandard,
 			config.get<string>('standardCustom'),
 			cancellationToken
@@ -356,16 +357,25 @@ export class Configuration {
 	 * can be readily given to the worker without any other parsing.
 	 *
 	 * @param {TextDocument} document The document to read.
+	 * @param {Array.<RegExp>} exclude The path exclusion rules to check.
 	 * @param {SpecialStandardOptions|string} standard The special standard option or string literal to use.
 	 * @param {string} [customStandard] The string to use with the `Custom` special standard option.
 	 * @param {CancellationToken} [cancellationToken] The optional token for cancelling the request.
 	 */
 	private async parseStandard(
 		document: TextDocument,
+		exclude: RegExp[],
 		standard: SpecialStandardOptions | string,
 		customStandard?: string,
 		cancellationToken?: CancellationToken
 	): Promise<string | null> {
+		// Linting should be disabled for documents that are excluded.
+		for (const pattern of exclude) {
+			if (pattern.test(document.uri.fsPath)) {
+				return null;
+			}
+		}
+
 		// There are some special standard options that require some parsing.
 		switch (standard) {
 			// Linting will not be performed when the standard is null.
