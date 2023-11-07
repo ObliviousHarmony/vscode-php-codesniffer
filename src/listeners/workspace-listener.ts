@@ -293,6 +293,9 @@ export class WorkspaceListener implements Disposable {
 			// Don't allow for overlapping requests.
 			this.diagnosticUpdater.cancel(document);
 
+			// Since the output from the worker may have changed we should clear the potentially invalid diagnostics.
+			this.diagnosticUpdater.clearDocument(document);
+
 			// Update the diagnostics for the document.
 			this.diagnosticUpdater.update(document, LintAction.Force);
 		}
@@ -335,6 +338,9 @@ export class WorkspaceListener implements Disposable {
 			// Don't allow for overlapping requests.
 			this.diagnosticUpdater.cancel(document);
 
+			// Since the output from the worker may have changed we should clear the potentially invalid diagnostics.
+			this.diagnosticUpdater.clearDocument(document);
+
 			// Update the diagnostics for the document.
 			this.diagnosticUpdater.update(document, LintAction.Force);
 		}
@@ -357,6 +363,9 @@ export class WorkspaceListener implements Disposable {
 
 			// Don't allow for overlapping requests.
 			this.diagnosticUpdater.cancel(document);
+
+			// Since the output from the worker may have changed we should clear the potentially invalid diagnostics.
+			this.diagnosticUpdater.clearDocument(document);
 
 			// Update the diagnostics for the document.
 			this.diagnosticUpdater.update(document, LintAction.Force);
