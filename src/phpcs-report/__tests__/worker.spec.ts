@@ -173,10 +173,10 @@ describe('Worker', () => {
 		return expect(promise).rejects.toStrictEqual(new CancellationError());
 	});
 
-	it('should support active change callback', async () => {
-		const onActiveChanged = jest.fn();
+	it('should support completion callback', async () => {
+		const onCompletion = jest.fn();
 
-		const worker = new Worker(onActiveChanged);
+		const worker = new Worker(onCompletion);
 
 		const request: Request<ReportType.Diagnostic> = {
 			type: ReportType.Diagnostic,
@@ -192,8 +192,8 @@ describe('Worker', () => {
 
 		await worker.execute(request);
 
-		expect(onActiveChanged).toHaveBeenCalledTimes(2);
-		expect(onActiveChanged).toHaveBeenLastCalledWith(worker);
+		expect(onCompletion).toHaveBeenCalledTimes(1);
+		expect(onCompletion).toHaveBeenLastCalledWith(worker);
 	});
 
 	it('should support executables with spaces', async () => {

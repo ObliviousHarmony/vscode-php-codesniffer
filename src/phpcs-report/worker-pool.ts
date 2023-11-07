@@ -38,7 +38,7 @@ export class WorkerPool {
 		this.workers = new Array(capacity);
 		for (let i = 0; i < capacity; ++i) {
 			this.workers[i] = new Worker((worker) =>
-				this.onWorkerActiveChange(worker)
+				this.onWorkerCompletion(worker)
 			);
 		}
 
@@ -97,11 +97,11 @@ export class WorkerPool {
 	}
 
 	/**
-	 * A callback that is executed whenever a worker's active status changes.
+	 * A callback that is executed when a worker has completed its task.
 	 *
 	 * @param {Worker} worker The worker whose status changed.
 	 */
-	private onWorkerActiveChange(worker: Worker): void {
+	private onWorkerCompletion(worker: Worker): void {
 		if (worker.isActive) {
 			return;
 		}
