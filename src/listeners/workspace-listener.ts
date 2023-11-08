@@ -105,10 +105,10 @@ export class WorkspaceListener implements Disposable {
 	): void {
 		// The opening and closing of documents will dictate whether we're listening for updates or not.
 		this.subscriptions.push(
-			workspace.onDidOpenTextDocument((e) => this.onOpen(e))
+			workspace.onDidOpenTextDocument((e) => this.onDocumentOpen(e))
 		);
 		this.subscriptions.push(
-			workspace.onDidCloseTextDocument((e) => this.onClose(e))
+			workspace.onDidCloseTextDocument((e) => this.onDocumentClose(e))
 		);
 
 		// When the text document's content is changed we should update the diagnostics as they're likely invalid.
@@ -118,14 +118,14 @@ export class WorkspaceListener implements Disposable {
 					return;
 				}
 
-				this.onUpdate(e.document, LintAction.Change);
+				this.onDocumentChange(e.document);
 			})
 		);
 
 		// When the text document is saved we should update the diagnostics.
 		this.subscriptions.push(
 			workspace.onDidSaveTextDocument((e) => {
-				this.onUpdate(e, LintAction.Save);
+				this.onDocumentSave(e);
 			})
 		);
 
@@ -143,7 +143,7 @@ export class WorkspaceListener implements Disposable {
 
 		// Make sure that the current editor is considered open.
 		if (window.activeTextEditor) {
-			this.onOpen(window.activeTextEditor.document);
+			this.onDocumentOpen(window.activeTextEditor.document);
 		}
 
 		// We're going to be watching for filesystem events on PHPCS executables.
@@ -184,7 +184,7 @@ export class WorkspaceListener implements Disposable {
 	 *
 	 * @param {TextDocument} document The affected document.
 	 */
-	private onOpen(document: TextDocument): void {
+	private onDocumentOpen(document: TextDocument): void {
 		// We only care about files with schemes we are able to handle.
 		switch (document.uri.scheme) {
 			case 'file':
@@ -203,8 +203,8 @@ export class WorkspaceListener implements Disposable {
 		// Mark that we should be tracking the document.
 		this.trackedDocuments.add(document.uri);
 
-		// Trigger an update so that the document will gather diagnostics.
-		this.onUpdate(document, LintAction.Force);
+		// Update the diagnostics for the document.
+		this.diagnosticUpdater.update(document, LintAction.Force);
 	}
 
 	/**
@@ -212,7 +212,7 @@ export class WorkspaceListener implements Disposable {
 	 *
 	 * @param {TextDocument} document The affected document.
 	 */
-	private onClose(document: TextDocument): void {
+	private onDocumentClose(document: TextDocument): void {
 		// Only clean up after documents that we're tracking.
 		if (!this.trackedDocuments.delete(document.uri)) {
 			return;
@@ -229,21 +229,23 @@ export class WorkspaceListener implements Disposable {
 
 	/**
 	 * A callback for documents being changed.
-	 *
+	 * 
 	 * @param {TextDocument} document The affected document.
-	 * @param {LintAction} lintAction The editor action triggering the linting.
 	 */
-	private onUpdate(document: TextDocument, lintAction: LintAction): void {
+	private onDocumentChange(document: TextDocument): void {
 		// Don't update documents that we aren't tracking.
 		if (!this.trackedDocuments.has(document.uri)) {
 			return;
 		}
 
-		// Apply a debounce so that we don't perform the update too quickly.
+		// Since a document can change very quickly while typing, we should
+		// apply a debounce to avoid unnecessary work.
 		let debounce = this.updateDebounceMap.get(document.uri);
 		if (debounce) {
 			clearTimeout(debounce);
 		}
+
+		// Make sure to track the timer so we can cancel it if needed.
 		debounce = setTimeout(() => {
 			this.updateDebounceMap.delete(document.uri);
 
@@ -251,9 +253,27 @@ export class WorkspaceListener implements Disposable {
 			this.diagnosticUpdater.cancel(document);
 
 			// Update the diagnostics for the document.
-			this.diagnosticUpdater.update(document, lintAction);
+			this.diagnosticUpdater.update(document, LintAction.Change);
 		}, 200);
 		this.updateDebounceMap.set(document.uri, debounce);
+	}
+
+	/**
+	 * A callback for documents being saved.
+	 * 
+	 * @param {TextDocument} document The affected document.
+	 */
+	private onDocumentSave(document: TextDocument): void {
+		// Don't update documents that we aren't tracking.
+		if (!this.trackedDocuments.has(document.uri)) {
+			return;
+		}
+
+		// Don't allow for overlapping requests for the same document.
+		this.diagnosticUpdater.cancel(document);
+
+		// Update the diagnostics for the document.
+		this.diagnosticUpdater.update(document, LintAction.Save);
 	}
 
 	/**
