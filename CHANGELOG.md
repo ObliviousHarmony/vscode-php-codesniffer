@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clear diagnostics when exceptions are thrown while updating them.
 - Clear diagnostics on configuration changes.
 - Excluded files should be ignored earlier to avoid errors.
+- Avoid diagnostic conflicts between file changes and saving.
 
 ## [2.1.0] - 2023-04-19
 ### Added
