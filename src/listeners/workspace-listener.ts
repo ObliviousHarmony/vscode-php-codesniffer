@@ -229,7 +229,7 @@ export class WorkspaceListener implements Disposable {
 
 	/**
 	 * A callback for documents being changed.
-	 * 
+	 *
 	 * @param {TextDocument} document The affected document.
 	 */
 	private onDocumentChange(document: TextDocument): void {
@@ -260,7 +260,7 @@ export class WorkspaceListener implements Disposable {
 
 	/**
 	 * A callback for documents being saved.
-	 * 
+	 *
 	 * @param {TextDocument} document The affected document.
 	 */
 	private onDocumentSave(document: TextDocument): void {
