@@ -34,7 +34,10 @@ on the workspace root that the document resides in (untitled documents use the f
 ### Executable (`phpCodeSniffer.exec.linux`, `phpCodeSniffer.exec.osx`, and `phpCodeSniffer.exec.windows`)
 
 This text input allows for setting a path to a platform-specific PHPCS executable. If a relative path is given it will be
-based on the workspace root that the document resides in (untitled documents use the first root). You may also set the
+based on the workspace root that the document resides in (untitled documents use the first root). Any arguments or options
+added after the executable will be passed to it automatically.
+
+You may also set the
 `phpCodeSniffer.autoExecutable` option if you'd like for the extension to automatically search for an executable. This
 works by looking for a `{vendor-dir}/bin/phpcs` (`{vendor-dir}\bin\phpcs.bat` on Windows) file in the document's directory and then
 traversing up to the workspace folder if it does not find one. When it fails to find one automatically it will
