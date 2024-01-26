@@ -11,6 +11,9 @@ needing to add options that most users will not need.
 - `phpCodeSniffer.specialOptions.phpcsIntegrationPathOverride` option that allows for
 overriding the path to the directory containing the extension's PHPCS integration.
 
+### Changed
+- All applicable configuration options should be able to be set at the folder level.
+
 ## [2.2.0] - 2023-11-07
 ### Fixed
 - Workers should still be freed when PHPCS does not run.

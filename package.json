@@ -73,7 +73,7 @@
           "items": {
             "type": "string"
           },
-          "scope": "window"
+          "scope": "resource"
         },
         "phpCodeSniffer.lintAction": {
           "type": "string",
@@ -115,13 +115,13 @@
             "Uses the PSR-12 coding standard,",
             "Uses the custom standard referenced in the custom ruleset option."
           ],
-          "scope": "window"
+          "scope": "resource"
         },
         "phpCodeSniffer.standardCustom": {
           "type": "string",
           "markdownDescription": "The custom coding standard to use if `#phpCodeSniffer.standard#` is set to 'Custom'.",
           "default": "",
-          "scope": "window"
+          "scope": "resource"
         },
         "phpCodeSniffer.executable": {
           "type": "string",
@@ -151,7 +151,7 @@
           "items": {
             "type": "string"
           },
-          "scope": "window"
+          "scope": "resource"
         }
       }
     },
