@@ -1,3 +1,4 @@
+import { resolve as resolvePath } from 'path';
 import { TextDecoder } from 'util';
 import { Minimatch } from 'minimatch';
 import {
@@ -48,6 +49,16 @@ export enum LintAction {
 }
 
 /**
+ * An interface describing the narrow use-case options in the `phpCodeSniffer.specialOptions` configuration.
+ */
+export interface SpecialOptions {
+	/**
+	 * An override for the path to the directory containing the extension's PHPCS integration files.
+	 */
+	phpcsIntegrationPathOverride?: string;
+}
+
+/**
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
@@ -63,6 +74,7 @@ interface ParamsFromConfiguration {
 	exclude: RegExp[];
 	lintAction: LintAction;
 	standard: string | null;
+	phpcsIntegrationPath: string;
 }
 
 /**
@@ -88,6 +100,11 @@ export interface DocumentConfiguration {
 	 * The standard we should use when executing reports.
 	 */
 	standard: string | null;
+
+	/**
+	 * The path to the PHPCS integration files.
+	 */
+	phpcsIntegrationPath: string;
 }
 
 /**
@@ -210,6 +227,7 @@ export class Configuration {
 			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
+			phpcsIntegrationPath: fromConfig.phpcsIntegrationPath,
 		};
 		this.cache.set(document.uri, config);
 
@@ -343,12 +361,35 @@ export class Configuration {
 			cancellationToken
 		);
 
+		const specialOptions = config.get<SpecialOptions>('specialOptions');
+		if (specialOptions === undefined) {
+			throw new ConfigurationError(
+				'specialOptions',
+				'Value must be an object.'
+			);
+		}
+
+		// Use the default integration path unless overridden.
+		let phpcsIntegrationPath: string;
+		if (specialOptions.phpcsIntegrationPathOverride) {
+			phpcsIntegrationPath = specialOptions.phpcsIntegrationPathOverride;
+		} else {
+			// Keep in mind that after bundling the integration files will be in a different location
+			// than they are in development and we need to resolve the correct path.
+			phpcsIntegrationPath = resolvePath(
+				__dirname,
+				'assets',
+				'phpcs-integration'
+			);
+		}
+
 		return {
 			autoExecutable,
 			executable,
 			exclude,
 			lintAction,
 			standard,
+			phpcsIntegrationPath,
 		};
 	}
 

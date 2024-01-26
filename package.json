@@ -130,6 +130,19 @@
           "default": null,
           "scope": "machine-overridable"
         },
+        "phpCodeSniffer.specialOptions": {
+          "type": "object",
+          "description": "An object of special options for the extension that serve more narrow use-cases.",
+          "default": {},
+          "properties": {
+            "phpcsIntegrationPathOverride": {
+              "type": "string",
+              "description": "Overrides the path to the directory that contains the extension's PHPCS integration."
+            }
+          },
+          "additionalProperties": false,
+          "scope": "resource"
+        },
         "phpCodeSniffer.ignorePatterns": {
           "type": "array",
           "description": "An array of regular expressions for paths that should be ignored by the extension.",

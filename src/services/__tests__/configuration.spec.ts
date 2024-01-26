@@ -13,6 +13,7 @@ import { TextEncoder } from 'util';
 import {
 	Configuration,
 	LintAction,
+	SpecialOptions,
 	SpecialStandardOptions,
 } from '../configuration';
 import { WorkspaceLocator } from '../workspace-locator';
@@ -29,6 +30,7 @@ type ConfigurationType = {
 	lintAction: LintAction;
 	standard: SpecialStandardOptions | string;
 	standardCustom: string;
+	specialOptions: SpecialOptions;
 
 	// Deprecated Options
 	executable: string | null;
@@ -59,6 +61,8 @@ const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
 				return SpecialStandardOptions.Disabled;
 			case 'standardCustom':
 				return '';
+			case 'specialOptions':
+				return {};
 
 			// Deprecated Settings
 			case 'executable':
