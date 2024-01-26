@@ -132,12 +132,12 @@
         },
         "phpCodeSniffer.specialOptions": {
           "type": "object",
-          "description": "An object of special options for the extension that serve very narrow use-cases.",
+          "description": "An object of special options for the extension that serve more narrow use-cases.",
           "default": {},
           "properties": {
-            "assetPathOverride": {
+            "phpcsIntegrationPathOverride": {
               "type": "string",
-              "description": "Overrides the path to the directory that contains the extension's asset files."
+              "description": "Overrides the path to the directory that contains the extension's PHPCS integration."
             }
           },
           "additionalProperties": false,
