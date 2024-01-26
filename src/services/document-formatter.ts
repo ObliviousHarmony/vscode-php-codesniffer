@@ -75,6 +75,7 @@ export class DocumentFormatter extends WorkerService {
 					options: {
 						executable: config.executable,
 						standard: config.standard,
+						phpcsIntegrationPath: config.phpcsIntegrationPath,
 					},
 					data: data,
 				};

@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `phpCodeSniffer.specialOptions` option to allow for supporting narrow use-cases without
+needing to add options that most users will not need.
+- `phpCodeSniffer.specialOptions.phpcsIntegrationPathOverride` option that allows for
+overriding the path to the directory containing the extension's PHPCS integration.
 
 ## [2.2.0] - 2023-11-07
 ### Fixed

@@ -8,18 +8,18 @@ import { Worker } from '../worker';
 
 // We need to mock the report files because Webpack is being used to bundle them.
 describe('Worker', () => {
+	let phpcsIntegrationPath: string;
 	let phpcsPath: string;
 
 	beforeAll(() => {
-		// Make sure the test knows where the real assets are located.
-		process.env.ASSETS_PATH = resolvePath(
+		phpcsIntegrationPath = resolvePath(
 			__dirname,
 			'..',
 			'..',
 			'..',
-			'assets'
+			'assets',
+			'phpcs-integration'
 		);
-
 		phpcsPath = resolvePath(
 			__dirname,
 			'..',
@@ -52,6 +52,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: null,
 		};
@@ -74,6 +75,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: null,
 		};
@@ -98,6 +100,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: {
 				code: 'PSR12.Files.OpenTag.NotAlone',
@@ -138,6 +141,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: {},
 		};
@@ -160,6 +164,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: null,
 		};
@@ -186,6 +191,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: null,
 		};
@@ -208,6 +214,7 @@ describe('Worker', () => {
 				// Since we use custom reports, adding `-s` for sources won't break anything.
 				executable: phpcsPath + ' -s',
 				standard: 'PSR12',
+				phpcsIntegrationPath: phpcsIntegrationPath,
 			},
 			data: null,
 		};

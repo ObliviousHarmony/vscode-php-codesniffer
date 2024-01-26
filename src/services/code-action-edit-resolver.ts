@@ -73,6 +73,7 @@ export class CodeActionEditResolver extends WorkerService {
 					options: {
 						executable: config.executable,
 						standard: config.standard,
+						phpcsIntegrationPath: config.phpcsIntegrationPath,
 					},
 					data: {
 						code: diagnostic.code as string,

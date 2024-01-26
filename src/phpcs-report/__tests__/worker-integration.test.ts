@@ -8,18 +8,18 @@ import { MockCancellationToken } from '../../__mocks__/vscode';
 
 // We need to mock the report files because Webpack is being used to bundle them.
 describe('Worker/WorkerPool Integration', () => {
+	let phpcsIntegrationPath: string;
 	let phpcsPath: string;
 
 	beforeAll(() => {
-		// Make sure the test knows where the real assets are located.
-		process.env.ASSETS_PATH = resolvePath(
+		phpcsIntegrationPath = resolvePath(
 			__dirname,
 			'..',
 			'..',
 			'..',
-			'assets'
+			'assets',
+			'phpcs-integration'
 		);
-
 		phpcsPath = resolvePath(
 			__dirname,
 			'..',
@@ -53,6 +53,7 @@ describe('Worker/WorkerPool Integration', () => {
 				options: {
 					executable: phpcsPath,
 					standard: 'PSR12',
+					phpcsIntegrationPath: phpcsIntegrationPath,
 				},
 				data: null,
 			};
@@ -81,6 +82,7 @@ describe('Worker/WorkerPool Integration', () => {
 				options: {
 					executable: phpcsPath,
 					standard: 'PSR12',
+					phpcsIntegrationPath: phpcsIntegrationPath,
 				},
 				data: null,
 			};
