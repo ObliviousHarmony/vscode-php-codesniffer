@@ -1,6 +1,6 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer\Extension;
+namespace ObliviousHarmony\VSCodePHPCSIntegration\Extension;
 
 use PHP_CodeSniffer\Files\File as BaseFile;
 use PHP_CodeSniffer\Sniffs\Sniff;
@@ -9,7 +9,7 @@ use PHP_CodeSniffer\Sniffs\Sniff;
  * A class that supports targeting specific tokens for fixes to allow for
  * tracking the edits that should be created by a single
  *
- * @property \VSCode\PHP_CodeSniffer\Extension\Fixer $fixer
+ * @property \ObliviousHarmony\VSCodePHPCSIntegration\Extension\Fixer $fixer
  */
 class File extends BaseFile
 {

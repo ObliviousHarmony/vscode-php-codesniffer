@@ -4,7 +4,7 @@
   "description": "Brings PHPCS support to VS Code.",
   "version": "2.3.0",
   "license": "GPL-2.0-or-later",
-  "author": "Christopher Allford",
+  "author": "Christopher Allford (https://github.com/ObliviousHarmony)",
   "repository": {
     "type": "git",
     "url": "https://github.com/ObliviousHarmony/vscode-php-codesniffer.git"

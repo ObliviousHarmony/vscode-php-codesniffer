@@ -11,3 +11,4 @@ composer.json
 composer.lock
 .gitignore
 *.vsix
+obliviousharmony-vscode-phpcs-integration-*

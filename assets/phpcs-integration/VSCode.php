@@ -1,11 +1,11 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer;
+namespace ObliviousHarmony\VSCodePHPCSIntegration;
 
 use PHP_CodeSniffer\Files\File as BaseFile;
 use PHP_CodeSniffer\Reports\Report;
-use VSCode\PHP_CodeSniffer\Extension\File;
-use VSCode\PHP_CodeSniffer\Handlers\Handler;
+use ObliviousHarmony\VSCodePHPCSIntegration\Extension\File;
+use ObliviousHarmony\VSCodePHPCSIntegration\Handlers\Handler;
 
 /**
  * The custom report for our PHPCS integration.

@@ -1,6 +1,41 @@
 {
+    "name": "obliviousharmony/vscode-phpcs-integration",
+    "description": "The custom PHPCS integration for the obliviousharmony.vscode-php-codesniffer VS Code extension.",
+	"version": "1.0.0",
+    "homepage": "https://github.com/ObliviousHarmony/vscode-php-codesniffer",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Christopher Allford",
+            "homepage": "https://github.com/ObliviousHarmony"
+        }
+    ],
+    "keywords": [
+        "phpcs",
+        "phpcbf",
+        "vscode",
+        "vscode-extension",
+        "vscode-phpcs",
+        "vscode-phpcbf"
+    ],
+    "readme": "assets/phpcs-integration/README.md",
+    "archive": {
+        "exclude": [
+            "*",
+            "!/composer.json",
+            "!/LICENSE.txt",
+            "!/assets/phpcs-integration"
+        ]
+    },
+	"prefer-stable": true,
+	"minimum-stability": "dev",
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "ObliviousHarmony\\VSCodePHPCSIntegration\\": "assets/phpcs-integration"
+        }
     },
     "scripts": {
         "lint": "phpcs --standard=psr12 -sp assets",

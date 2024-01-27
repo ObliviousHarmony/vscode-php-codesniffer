@@ -1,6 +1,6 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer\Extension;
+namespace ObliviousHarmony\VSCodePHPCSIntegration\Extension;
 
 use PHP_CodeSniffer\Fixer as BaseFixer;
 
