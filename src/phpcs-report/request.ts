@@ -6,6 +6,7 @@ import { ReportType } from './response';
 export interface RequestOptions {
 	executable: string;
 	standard: string | null;
+	autoloadPHPCSIntegration: boolean;
 }
 
 /**

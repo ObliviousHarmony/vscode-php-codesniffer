@@ -53,6 +53,7 @@ describe('Worker/WorkerPool Integration', () => {
 				options: {
 					executable: phpcsPath,
 					standard: 'PSR12',
+					autoloadPHPCSIntegration: false,
 				},
 				data: null,
 			};
@@ -81,6 +82,7 @@ describe('Worker/WorkerPool Integration', () => {
 				options: {
 					executable: phpcsPath,
 					standard: 'PSR12',
+					autoloadPHPCSIntegration: false,
 				},
 				data: null,
 			};

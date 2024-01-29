@@ -67,6 +67,7 @@ interface ParamsFromFilesystem {
 interface ParamsFromConfiguration {
 	autoExecutable: boolean;
 	executable: string;
+	autoloadPHPCSIntegration: boolean;
 	exclude: RegExp[];
 	lintAction: LintAction;
 	standard: string | null;
@@ -80,6 +81,12 @@ export interface DocumentConfiguration {
 	 * The executable we should use in the worker.
 	 */
 	executable: string;
+
+	/**
+	 * Whether or not the PHPCS integration files should be autoloaded. If they aren't
+	 * autoloaded then they will be loaded using an absolute path to the files.
+	 */
+	autoloadPHPCSIntegration: boolean;
 
 	/**
 	 * The patterns we should use when excluding files and folders from reports.
@@ -214,6 +221,7 @@ export class Configuration {
 		// Build and cache the document configuration to save time later.
 		config = {
 			executable: fromFilesystem.executable ?? fromConfig.executable,
+			autoloadPHPCSIntegration: fromConfig.autoloadPHPCSIntegration,
 			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
@@ -262,6 +270,16 @@ export class Configuration {
 		if (autoExecutable === undefined) {
 			throw new ConfigurationError(
 				'autoExecutable',
+				'Value must be a boolean.'
+			);
+		}
+
+		const autoloadPHPCSIntegration = config.get<boolean>(
+			'autoloadPHPCSIntegration'
+		);
+		if (autoloadPHPCSIntegration === undefined) {
+			throw new ConfigurationError(
+				'autoloadPHPCSIntegration',
 				'Value must be a boolean.'
 			);
 		}
@@ -352,6 +370,7 @@ export class Configuration {
 
 		return {
 			autoExecutable,
+			autoloadPHPCSIntegration,
 			executable,
 			exclude,
 			lintAction,

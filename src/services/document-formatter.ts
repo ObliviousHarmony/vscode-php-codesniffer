@@ -75,6 +75,8 @@ export class DocumentFormatter extends WorkerService {
 					options: {
 						executable: config.executable,
 						standard: config.standard,
+						autoloadPHPCSIntegration:
+							config.autoloadPHPCSIntegration,
 					},
 					data: data,
 				};

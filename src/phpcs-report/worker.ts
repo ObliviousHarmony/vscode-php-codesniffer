@@ -171,19 +171,35 @@ export class Worker {
 		resolve: (response: Response<T>) => void,
 		reject: (e?: unknown) => void
 	): ChildProcess {
-		// Figure out the path to the PHPCS integration.
-		const assetPath =
-			process.env.ASSETS_PATH || resolvePath(__dirname, 'assets');
+		// Allow for the configuration to decide whether the report files are autoloaded
+		let report;
+		if (request.options.autoloadPHPCSIntegration) {
+			report =
+				'ObliviousHarmony\\VSCodePHPCSIntegration\\VSCodeIntegration';
+		} else {
+			// Let an environment variable override the asset path.
+			let assetsPath;
+			if (process.env.ASSETS_PATH) {
+				assetsPath = process.env.ASSETS_PATH;
+			} else {
+				// After bundling there will be a single file at the root of
+				// the repo. We need to treat this path relative to that
+				// instead of the current file's location.
+				assetsPath = resolvePath(__dirname, 'assets');
+			}
+
+			// Resolve a path to the report file.
+			report = resolvePath(
+				assetsPath,
+				'phpcs-integration',
+				'VSCodeIntegration.php'
+			);
+		}
 
 		// Prepare the arguments for our PHPCS process.
 		const processArguments = [
 			'-q', // Make sure custom configs never break our output.
-			'--report=' +
-				resolvePath(
-					assetPath,
-					'phpcs-integration',
-					'VSCodeIntegration.php'
-				),
+			'--report=' + report,
 			// We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.
 			'--runtime-set',
 			'ignore_warnings_on_exit',

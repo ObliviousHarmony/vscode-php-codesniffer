@@ -28,6 +28,7 @@ type ConfigurationType = {
 	exclude: string[];
 	lintAction: LintAction;
 	standard: SpecialStandardOptions | string;
+	autoloadPHPCSIntegration: boolean;
 	standardCustom: string;
 
 	// Deprecated Options
@@ -46,6 +47,8 @@ const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
 
 		switch (key) {
 			case 'autoExecutable':
+				return false;
+			case 'autoloadPHPCSIntegration':
 				return false;
 			case 'exec.linux':
 			case 'exec.osx':

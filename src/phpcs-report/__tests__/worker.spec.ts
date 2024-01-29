@@ -52,6 +52,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: null,
 		};
@@ -74,6 +75,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: null,
 		};
@@ -98,6 +100,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: {
 				code: 'PSR12.Files.OpenTag.NotAlone',
@@ -138,6 +141,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: {},
 		};
@@ -160,6 +164,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: null,
 		};
@@ -186,6 +191,7 @@ describe('Worker', () => {
 			options: {
 				executable: phpcsPath,
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: null,
 		};
@@ -208,6 +214,7 @@ describe('Worker', () => {
 				// Since we use custom reports, adding `-s` for sources won't break anything.
 				executable: phpcsPath + ' -s',
 				standard: 'PSR12',
+				autoloadPHPCSIntegration: false,
 			},
 			data: null,
 		};

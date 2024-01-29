@@ -104,6 +104,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: 'PSR12',
+			autoloadPHPCSIntegration: false,
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -112,6 +113,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					executable: 'phpcs-test',
 					standard: 'PSR12',
+					autoloadPHPCSIntegration: false,
 				},
 			});
 
@@ -166,6 +168,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: 'PSR12',
+			autoloadPHPCSIntegration: false,
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -174,6 +177,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					executable: 'phpcs-test',
 					standard: 'PSR12',
+					autoloadPHPCSIntegration: false,
 				},
 			});
 
@@ -198,6 +202,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Save,
 			standard: 'PSR12',
+			autoloadPHPCSIntegration: false,
 		});
 
 		return diagnosticUpdater.update(document, LintAction.Change);
