@@ -4,7 +4,7 @@
   "description": "Brings PHPCS support to VS Code.",
   "version": "2.3.0",
   "license": "GPL-2.0-or-later",
-  "author": "Christopher Allford",
+  "author": "Christopher Allford (https://github.com/ObliviousHarmony)",
   "repository": {
     "type": "git",
     "url": "https://github.com/ObliviousHarmony/vscode-php-codesniffer.git"
@@ -44,6 +44,12 @@
           "type": "boolean",
           "markdownDescription": "Attempts to find `bin/phpcs` in the file folder and parent directories' vendor folder before falling back to the platform-specific executable.",
           "default": false,
+          "scope": "resource"
+        },
+        "phpCodeSniffer.autoloadPHPCSIntegration": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Whether or not the PHPCS integration files are available through the autoloader. This should only be enabled when the integration files are provided via Composer.",
           "scope": "resource"
         },
         "phpCodeSniffer.exec.linux": {
@@ -134,12 +140,7 @@
           "type": "object",
           "description": "An object of special options for the extension that serve more narrow use-cases.",
           "default": {},
-          "properties": {
-            "phpcsIntegrationPathOverride": {
-              "type": "string",
-              "description": "Overrides the path to the directory that contains the extension's PHPCS integration."
-            }
-          },
+          "properties": {},
           "additionalProperties": false,
           "scope": "resource"
         },

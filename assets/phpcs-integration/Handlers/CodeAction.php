@@ -1,8 +1,8 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer\Handlers;
+namespace ObliviousHarmony\VSCodePHPCSIntegration\Handlers;
 
-use VSCode\PHP_CodeSniffer\Extension\File;
+use ObliviousHarmony\VSCodePHPCSIntegration\Extension\File;
 
 /**
  * A handler for returning information about edits from PHPCS in a way

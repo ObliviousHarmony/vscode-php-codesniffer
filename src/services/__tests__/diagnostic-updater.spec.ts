@@ -44,7 +44,6 @@ jest.mock('../../types', () => {
 });
 
 describe('DiagnosticUpdater', () => {
-	let phpcsIntegrationPath: string;
 	let mockLogger: Logger;
 	let mockWorkspaceLocator: WorkspaceLocator;
 	let mockConfiguration: Configuration;
@@ -55,15 +54,15 @@ describe('DiagnosticUpdater', () => {
 	let diagnosticUpdater: DiagnosticUpdater;
 
 	beforeEach(() => {
-		phpcsIntegrationPath = resolvePath(
+		// Make sure the test knows where the real assets are located.
+		process.env.ASSETS_PATH = resolvePath(
 			__dirname,
 			'..',
 			'..',
 			'..',
-			'..',
-			'assets',
-			'phpcs-integration'
+			'assets'
 		);
+
 		mockLogger = new Logger(window);
 		mockWorkspaceLocator = new WorkspaceLocator(workspace);
 		mockConfiguration = new Configuration(workspace, mockWorkspaceLocator);
@@ -105,7 +104,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: 'PSR12',
-			phpcsIntegrationPath: phpcsIntegrationPath,
+			autoloadPHPCSIntegration: false,
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -114,7 +113,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					executable: 'phpcs-test',
 					standard: 'PSR12',
-					phpcsIntegrationPath: phpcsIntegrationPath,
+					autoloadPHPCSIntegration: false,
 				},
 			});
 
@@ -169,7 +168,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Change,
 			standard: 'PSR12',
-			phpcsIntegrationPath: phpcsIntegrationPath,
+			autoloadPHPCSIntegration: false,
 		});
 		jest.mocked(mockWorker).execute.mockImplementation((request) => {
 			expect(request).toMatchObject({
@@ -178,7 +177,7 @@ describe('DiagnosticUpdater', () => {
 				options: {
 					executable: 'phpcs-test',
 					standard: 'PSR12',
-					phpcsIntegrationPath: phpcsIntegrationPath,
+					autoloadPHPCSIntegration: false,
 				},
 			});
 
@@ -203,7 +202,7 @@ describe('DiagnosticUpdater', () => {
 			exclude: [],
 			lintAction: LintAction.Save,
 			standard: 'PSR12',
-			phpcsIntegrationPath: phpcsIntegrationPath,
+			autoloadPHPCSIntegration: false,
 		});
 
 		return diagnosticUpdater.update(document, LintAction.Change);

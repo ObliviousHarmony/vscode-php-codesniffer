@@ -1,4 +1,3 @@
-import { resolve as resolvePath } from 'path';
 import { TextDecoder } from 'util';
 import { Minimatch } from 'minimatch';
 import {
@@ -11,6 +10,13 @@ import {
 } from 'vscode';
 import { UriMap } from '../common/uri-map';
 import { WorkspaceLocator } from './workspace-locator';
+
+/**
+ * A constant for the version of the PHPCS integration files.
+ * This should be incremented if the files are changed so
+ * that we can provide a clear error message.
+ */
+export const PHPCS_INTEGRATION_VERSION = '1.0.0';
 
 /**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
@@ -49,16 +55,6 @@ export enum LintAction {
 }
 
 /**
- * An interface describing the narrow use-case options in the `phpCodeSniffer.specialOptions` configuration.
- */
-export interface SpecialOptions {
-	/**
-	 * An override for the path to the directory containing the extension's PHPCS integration files.
-	 */
-	phpcsIntegrationPathOverride?: string;
-}
-
-/**
  * An interface describing the configuration parameters we can read from the filesystem.
  */
 interface ParamsFromFilesystem {
@@ -71,10 +67,10 @@ interface ParamsFromFilesystem {
 interface ParamsFromConfiguration {
 	autoExecutable: boolean;
 	executable: string;
+	autoloadPHPCSIntegration: boolean;
 	exclude: RegExp[];
 	lintAction: LintAction;
 	standard: string | null;
-	phpcsIntegrationPath: string;
 }
 
 /**
@@ -85,6 +81,12 @@ export interface DocumentConfiguration {
 	 * The executable we should use in the worker.
 	 */
 	executable: string;
+
+	/**
+	 * Whether or not the PHPCS integration files should be autoloaded. If they aren't
+	 * autoloaded then they will be loaded using an absolute path to the files.
+	 */
+	autoloadPHPCSIntegration: boolean;
 
 	/**
 	 * The patterns we should use when excluding files and folders from reports.
@@ -100,11 +102,6 @@ export interface DocumentConfiguration {
 	 * The standard we should use when executing reports.
 	 */
 	standard: string | null;
-
-	/**
-	 * The path to the PHPCS integration files.
-	 */
-	phpcsIntegrationPath: string;
 }
 
 /**
@@ -224,10 +221,10 @@ export class Configuration {
 		// Build and cache the document configuration to save time later.
 		config = {
 			executable: fromFilesystem.executable ?? fromConfig.executable,
+			autoloadPHPCSIntegration: fromConfig.autoloadPHPCSIntegration,
 			exclude: fromConfig.exclude,
 			lintAction: fromConfig.lintAction,
 			standard: fromConfig.standard,
-			phpcsIntegrationPath: fromConfig.phpcsIntegrationPath,
 		};
 		this.cache.set(document.uri, config);
 
@@ -273,6 +270,16 @@ export class Configuration {
 		if (autoExecutable === undefined) {
 			throw new ConfigurationError(
 				'autoExecutable',
+				'Value must be a boolean.'
+			);
+		}
+
+		const autoloadPHPCSIntegration = config.get<boolean>(
+			'autoloadPHPCSIntegration'
+		);
+		if (autoloadPHPCSIntegration === undefined) {
+			throw new ConfigurationError(
+				'autoloadPHPCSIntegration',
 				'Value must be a boolean.'
 			);
 		}
@@ -361,35 +368,13 @@ export class Configuration {
 			cancellationToken
 		);
 
-		const specialOptions = config.get<SpecialOptions>('specialOptions');
-		if (specialOptions === undefined) {
-			throw new ConfigurationError(
-				'specialOptions',
-				'Value must be an object.'
-			);
-		}
-
-		// Use the default integration path unless overridden.
-		let phpcsIntegrationPath: string;
-		if (specialOptions.phpcsIntegrationPathOverride) {
-			phpcsIntegrationPath = specialOptions.phpcsIntegrationPathOverride;
-		} else {
-			// Keep in mind that after bundling the integration files will be in a different location
-			// than they are in development and we need to resolve the correct path.
-			phpcsIntegrationPath = resolvePath(
-				__dirname,
-				'assets',
-				'phpcs-integration'
-			);
-		}
-
 		return {
 			autoExecutable,
+			autoloadPHPCSIntegration,
 			executable,
 			exclude,
 			lintAction,
 			standard,
-			phpcsIntegrationPath,
 		};
 	}
 

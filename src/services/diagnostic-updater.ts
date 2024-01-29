@@ -149,8 +149,8 @@ export class DiagnosticUpdater extends WorkerService {
 							options: {
 								executable: config.executable,
 								standard: config.standard,
-								phpcsIntegrationPath:
-									config.phpcsIntegrationPath,
+								autoloadPHPCSIntegration:
+									config.autoloadPHPCSIntegration,
 							},
 							data: null,
 						};

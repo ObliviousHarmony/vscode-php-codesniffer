@@ -13,7 +13,6 @@ import { TextEncoder } from 'util';
 import {
 	Configuration,
 	LintAction,
-	SpecialOptions,
 	SpecialStandardOptions,
 } from '../configuration';
 import { WorkspaceLocator } from '../workspace-locator';
@@ -29,8 +28,8 @@ type ConfigurationType = {
 	exclude: string[];
 	lintAction: LintAction;
 	standard: SpecialStandardOptions | string;
+	autoloadPHPCSIntegration: boolean;
 	standardCustom: string;
-	specialOptions: SpecialOptions;
 
 	// Deprecated Options
 	executable: string | null;
@@ -49,6 +48,8 @@ const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
 		switch (key) {
 			case 'autoExecutable':
 				return false;
+			case 'autoloadPHPCSIntegration':
+				return false;
 			case 'exec.linux':
 			case 'exec.osx':
 			case 'exec.windows':
@@ -61,8 +62,6 @@ const getDefaultConfiguration = (overrides?: Partial<ConfigurationType>) => {
 				return SpecialStandardOptions.Disabled;
 			case 'standardCustom':
 				return '';
-			case 'specialOptions':
-				return {};
 
 			// Deprecated Settings
 			case 'executable':

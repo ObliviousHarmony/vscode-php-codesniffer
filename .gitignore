@@ -8,6 +8,7 @@
 
 # Build Artifacts
 *.vsix
+obliviousharmony-vscode-phpcs-integration-*
 extension.js
 extension.js.map
 

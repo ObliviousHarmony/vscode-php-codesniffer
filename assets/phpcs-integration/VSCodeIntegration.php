@@ -1,16 +1,21 @@
 <?php
 
-namespace VSCode\PHP_CodeSniffer;
+namespace ObliviousHarmony\VSCodePHPCSIntegration;
 
 use PHP_CodeSniffer\Files\File as BaseFile;
 use PHP_CodeSniffer\Reports\Report;
-use VSCode\PHP_CodeSniffer\Extension\File;
-use VSCode\PHP_CodeSniffer\Handlers\Handler;
+use ObliviousHarmony\VSCodePHPCSIntegration\Extension\File;
+use ObliviousHarmony\VSCodePHPCSIntegration\Handlers\Handler;
+
+// This should match the version in the `configuration.ts` file so that
+// we can provide error messaging that tells them to update the
+// Composer package containing these files.
+define('PHPCS_INTEGRATION_VERSION', '1.0.0');
 
 /**
  * The custom report for our PHPCS integration.
  */
-class VSCode implements Report
+class VSCodeIntegration implements Report
 {
     /**
      * Constructor.
@@ -44,6 +49,15 @@ class VSCode implements Report
 
         // We use an environment variable to pass input to the reports.
         $input = $this->getVSCodeInput();
+
+        // Make sure that we are running the correct version of the integration package.
+        if ($input->version !== PHPCS_INTEGRATION_VERSION) {
+            $errorMessage = 'The extension expected version '
+            . PHPCS_INTEGRATION_VERSION
+            . ' of the integration files. Current Version: '
+            . $input->version . PHP_EOL;
+            throw new \InvalidArgumentException($errorMessage);
+        }
 
         // Use the handler to process the report.
         $handler = $this->getHandler($input->type);
@@ -90,7 +104,7 @@ class VSCode implements Report
     protected function getHandler($reportType)
     {
         // Find the handler class file that should power this report.
-        $report = '\\VSCode\\PHP_CodeSniffer\\Handlers\\' . $reportType;
+        $report = '\\ObliviousHarmony\\VSCodePHPCSIntegration\\Handlers\\' . $reportType;
         if (!\class_exists($report)) {
             throw new \InvalidArgumentException('Handler "' . $report . '" could be found');
         }

@@ -3,6 +3,7 @@ import { resolve as resolvePath } from 'path';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
 import { Request } from './request';
 import { ReportType, Response } from './response';
+import { PHPCS_INTEGRATION_VERSION } from '../services/configuration';
 
 /**
  * A callback to execute when the worker has completed its task.
@@ -37,6 +38,14 @@ export class PHPCSError extends Error {
 
 		this.output = output;
 		this.errorOutput = errorOutput;
+
+		// Depending on the type of error we may want to perform some processing.
+		const match = this.errorOutput.match(
+			/Uncaught InvalidArgumentException: (The extension[^)]+)/
+		);
+		if (match) {
+			this.errorOutput = match[1];
+		}
 	}
 }
 
@@ -162,11 +171,35 @@ export class Worker {
 		resolve: (response: Response<T>) => void,
 		reject: (e?: unknown) => void
 	): ChildProcess {
+		// Allow for the configuration to decide whether the report files are autoloaded
+		let report;
+		if (request.options.autoloadPHPCSIntegration) {
+			report =
+				'ObliviousHarmony\\VSCodePHPCSIntegration\\VSCodeIntegration';
+		} else {
+			// Let an environment variable override the asset path.
+			let assetsPath;
+			if (process.env.ASSETS_PATH) {
+				assetsPath = process.env.ASSETS_PATH;
+			} else {
+				// After bundling there will be a single file at the root of
+				// the repo. We need to treat this path relative to that
+				// instead of the current file's location.
+				assetsPath = resolvePath(__dirname, 'assets');
+			}
+
+			// Resolve a path to the report file.
+			report = resolvePath(
+				assetsPath,
+				'phpcs-integration',
+				'VSCodeIntegration.php'
+			);
+		}
+
 		// Prepare the arguments for our PHPCS process.
 		const processArguments = [
 			'-q', // Make sure custom configs never break our output.
-			'--report=' +
-				resolvePath(request.options.phpcsIntegrationPath, 'VSCode.php'),
+			'--report=' + report,
 			// We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.
 			'--runtime-set',
 			'ignore_warnings_on_exit',
@@ -208,6 +241,7 @@ export class Worker {
 				...process.env,
 				// Pass the request data using environment vars.
 				PHPCS_VSCODE_INPUT: JSON.stringify({
+					version: PHPCS_INTEGRATION_VERSION,
 					type: request.type,
 					data: request.data,
 				}),
