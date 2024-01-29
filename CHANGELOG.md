@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Support using an `obliviousharmony/vscode-phpcs-integration` Composer package to provide
+the integration files when a new `phpCodeSniffer.autoloadPHPCSIntegration` option
+is enabled.
+
+### Removed
+- **BREAKING:** The `phpCodeSniffer.specialOptions.phpcsIntegrationPathOverride` option
+has been removed in favor of using `phpCodeSniffer.autoloadPHPCSIntegration`.
+There is no reason to set a manual asset path since the Composer package accomplishes
+the same thing with an easier-to-use configuration path.
 
 ## [2.3.0] - 2024-01-26
 ### Added
@@ -42,7 +52,8 @@ for platform-specific executables.
 - Support for execution on Windows without the use of WSL.
 
 ### Changed
-- **BREAKING:** Even if `phpCodeSniffer.autoExecutable` is enabled, the working directory given to PHPCS should always be the workspace root.
+- **BREAKING:** Even if `phpCodeSniffer.autoExecutable` is enabled, the working directory given to
+PHPCS should always be the workspace root.
 
 ### Deprecated
 - `phpCodeSniffer.executable` has been deprecated in favor of platform-specific executable options.

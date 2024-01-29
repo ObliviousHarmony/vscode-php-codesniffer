@@ -46,6 +46,12 @@
           "default": false,
           "scope": "resource"
         },
+        "phpCodeSniffer.autoloadPHPCSIntegration": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Whether or not the PHPCS integration files are available through the autoloader. This should only be enabled when the integration files are provided via Composer.",
+          "scope": "resource"
+        },
         "phpCodeSniffer.exec.linux": {
           "type": "string",
           "markdownDescription": "The path to the PHPCS executable we want to use on Linux when `#phpCodeSniffer.autoExecutable#` is disabled or unable to find one.",
@@ -134,12 +140,7 @@
           "type": "object",
           "description": "An object of special options for the extension that serve more narrow use-cases.",
           "default": {},
-          "properties": {
-            "phpcsIntegrationPathOverride": {
-              "type": "string",
-              "description": "Overrides the path to the directory that contains the extension's PHPCS integration."
-            }
-          },
+          "properties": {},
           "additionalProperties": false,
           "scope": "resource"
         },
