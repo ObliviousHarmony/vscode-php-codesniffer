@@ -1,13 +1,31 @@
-* text=auto
+*       text=auto
 
-*.txt text eol=lf
-*.md text eol=lf
-*.json text eol=lf
-*.yml text eol=lf
-*.xml text eol=lf
-.nvmrc text eol=lf
-*.ts text eol=lf
-*.js text eol=lf
-*.php text eol=lf
+# Mark code files with the correct EOL.
+*.txt   text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.xml   text eol=lf
+.nvmrc  text eol=lf
+*.ts    text eol=lf
+*.js    text eol=lf
+*.php   text eol=lf
 
 *.png binary
+
+# Prevent Packagist from distributing some files.
+/.*                 export-ignore
+/README.md          export-ignore
+/CHANGELOG.md       export-ignore
+/src                export-ignore
+/package.json       export-ignore
+/package-lock.json  export-ignore
+/node_modules       export-ignore
+/vendor             export-ignore
+/extension.js       export-ignore
+/extension.js.map   export-ignore
+/jest.config.json   export-ignore
+/*.tar              export-ignore
+/*.vsix             export-ignore
+/tsconfig.json      export-ignore
+/webpack.config.js  export-ignore
