@@ -18,14 +18,6 @@
         "vscode-phpcbf"
     ],
     "readme": "assets/phpcs-integration/README.md",
-    "archive": {
-        "exclude": [
-            "*",
-            "!/composer.json",
-            "!/LICENSE.txt",
-            "!/assets/phpcs-integration"
-        ]
-    },
 	"prefer-stable": true,
 	"minimum-stability": "dev",
     "require-dev": {

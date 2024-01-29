@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2024-01-29
+### Fixed
+- Composer package should not contain unnecessary files.
+
 ## [3.0.0] - 2024-01-29
 ### Added
 - Support using an `obliviousharmony/vscode-phpcs-integration` Composer package to provide
