@@ -3,6 +3,7 @@ import { resolve as resolvePath } from 'path';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
 import { Request } from './request';
 import { ReportType, Response } from './response';
+import { PHPCS_INTEGRATION_VERSION } from '../services/configuration';
 
 /**
  * A callback to execute when the worker has completed its task.
@@ -37,6 +38,14 @@ export class PHPCSError extends Error {
 
 		this.output = output;
 		this.errorOutput = errorOutput;
+
+		// Depending on the type of error we may want to perform some processing.
+		const match = this.errorOutput.match(
+			/Uncaught InvalidArgumentException: (The extension[^)]+)/
+		);
+		if (match) {
+			this.errorOutput = match[1];
+		}
 	}
 }
 
@@ -166,7 +175,10 @@ export class Worker {
 		const processArguments = [
 			'-q', // Make sure custom configs never break our output.
 			'--report=' +
-				resolvePath(request.options.phpcsIntegrationPath, 'VSCode.php'),
+				resolvePath(
+					request.options.phpcsIntegrationPath,
+					'VSCodeIntegration.php'
+				),
 			// We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.
 			'--runtime-set',
 			'ignore_warnings_on_exit',
@@ -208,6 +220,7 @@ export class Worker {
 				...process.env,
 				// Pass the request data using environment vars.
 				PHPCS_VSCODE_INPUT: JSON.stringify({
+					version: PHPCS_INTEGRATION_VERSION,
 					type: request.type,
 					data: request.data,
 				}),

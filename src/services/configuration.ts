@@ -13,6 +13,13 @@ import { UriMap } from '../common/uri-map';
 import { WorkspaceLocator } from './workspace-locator';
 
 /**
+ * A constant for the version of the PHPCS integration files.
+ * This should be incremented if the files are changed so
+ * that we can provide a clear error message.
+ */
+export const PHPCS_INTEGRATION_VERSION = '1.0.0';
+
+/**
  * An enum describing the special parsing values in the `phpCodeSniffer.standard` configuration.
  */
 export enum SpecialStandardOptions {
