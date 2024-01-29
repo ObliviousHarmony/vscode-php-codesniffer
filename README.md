@@ -61,6 +61,6 @@ any file rules in your coding standard, this option allows you to define additio
  }
  ```
 
-## Using in Containerized Development Environments
+## Using in Containerized Development Environments (`phpCodeSniffer.autoloadPHPCSIntegration`)
 
-If you are using a container for your development environment we would _strongly_ recommend using one of [VS Code's remote development extensions](https://code.visualstudio.com/docs/remote/remote-overview). However, if this is not possible, [we have provided a Composer package with the files required to integrate with PHPCS](./assets/phpcs-integration). You _must_ install these files alongside PHPCS (globally or per-project) in order for the extension to work properly. Once you have installed the package it will be used automatically instead of the files bundled with the extension.
+If you are using a container for your development environment we would _strongly_ recommend using one of [VS Code's remote development extensions](https://code.visualstudio.com/docs/remote/remote-overview). However, if this is not possible, [we have provided a Composer package with the files required to integrate with PHPCS](./assets/phpcs-integration). You _must_ install these files alongside PHPCS (globally or per-project) in order for the extension to work properly. Once you have installed the package it will be used instead of the build-in integration when `phpCodeSniffer.autoloadPHPCSIntegration` is enabled.
