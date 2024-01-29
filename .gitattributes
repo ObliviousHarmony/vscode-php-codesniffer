@@ -21,6 +21,7 @@
 /package.json       export-ignore
 /package-lock.json  export-ignore
 /node_modules       export-ignore
+/composer.lock      export-ignore
 /vendor             export-ignore
 /extension.js       export-ignore
 /extension.js.map   export-ignore
