@@ -171,12 +171,17 @@ export class Worker {
 		resolve: (response: Response<T>) => void,
 		reject: (e?: unknown) => void
 	): ChildProcess {
+		// Figure out the path to the PHPCS integration.
+		const assetPath =
+			process.env.ASSETS_PATH || resolvePath(__dirname, 'assets');
+
 		// Prepare the arguments for our PHPCS process.
 		const processArguments = [
 			'-q', // Make sure custom configs never break our output.
 			'--report=' +
 				resolvePath(
-					request.options.phpcsIntegrationPath,
+					assetPath,
+					'phpcs-integration',
 					'VSCodeIntegration.php'
 				),
 			// We want to reserve error exit codes for actual errors in the PHPCS execution since errors/warnings are expected.

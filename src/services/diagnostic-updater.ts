@@ -110,12 +110,12 @@ export class DiagnosticUpdater extends WorkerService {
 
 		this.configuration
 			.get(document, cancellationToken)
-			.then((config) => {
+			.then((configuration) => {
 				// Allow users to decide when the diagnostics are updated.
 				switch (lintAction) {
 					case LintAction.Change:
 						// Allow users to restrict updates to explicit save actions.
-						if (config.lintAction === LintAction.Save) {
+						if (configuration.lintAction === LintAction.Save) {
 							throw new UpdatePreventedError();
 						}
 
@@ -123,7 +123,7 @@ export class DiagnosticUpdater extends WorkerService {
 
 					case LintAction.Save:
 						// When linting on change, we will always have the latest diagnostics, and don't need to update.
-						if (config.lintAction === LintAction.Change) {
+						if (configuration.lintAction === LintAction.Change) {
 							throw new UpdatePreventedError();
 						}
 						break;
@@ -147,10 +147,8 @@ export class DiagnosticUpdater extends WorkerService {
 							documentPath: document.uri.fsPath,
 							documentContent: document.getText(),
 							options: {
-								executable: config.executable,
-								standard: config.standard,
-								phpcsIntegrationPath:
-									config.phpcsIntegrationPath,
+								executable: configuration.executable,
+								standard: configuration.standard,
 							},
 							data: null,
 						};

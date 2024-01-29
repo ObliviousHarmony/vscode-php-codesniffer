@@ -6,7 +6,6 @@ import { ReportType } from './response';
 export interface RequestOptions {
 	executable: string;
 	standard: string | null;
-	phpcsIntegrationPath: string;
 }
 
 /**
