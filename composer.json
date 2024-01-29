@@ -1,7 +1,6 @@
 {
     "name": "obliviousharmony/vscode-phpcs-integration",
     "description": "The custom PHPCS integration for the obliviousharmony.vscode-php-codesniffer VS Code extension.",
-	"version": "1.0.0",
     "homepage": "https://github.com/ObliviousHarmony/vscode-php-codesniffer",
     "license": "GPL-2.0-or-later",
     "authors": [
