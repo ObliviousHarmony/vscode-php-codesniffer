@@ -213,13 +213,36 @@ export class Worker {
 		// We support the use of arguments in the executable option. This allows for
 		// users to build more complex commands such as those that should be ran
 		// in a container or with specific arguments.
+		const supportedQuotes = ["'", '"'];
 		const parsedExecutable = splitString(request.options.executable, {
-			quotes: ['"', "'"],
+			quotes: supportedQuotes,
 			brackets: false,
 			separator: ' ',
 		});
 		if (!parsedExecutable.length) {
 			throw new Error('No executable was given.');
+		}
+
+		// Trim quotes from the start/end of each argument since Node will
+		// handle quoting any arguments for us when we spawn the process.
+		for (const key in parsedExecutable) {
+			const segment = parsedExecutable[key];
+
+			const first = segment.at(0);
+			if (!first) {
+				continue;
+			}
+
+			if (!supportedQuotes.includes(first)) {
+				continue;
+			}
+
+			// Only remove matching quotes.
+			if (segment.at(-1) !== first) {
+				continue;
+			}
+
+			parsedExecutable[key] = segment.slice(1, -1);
 		}
 
 		// The first segment will always be the executable.

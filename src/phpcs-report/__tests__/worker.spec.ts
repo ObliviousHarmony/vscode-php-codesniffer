@@ -202,7 +202,7 @@ describe('Worker', () => {
 		expect(onCompletion).toHaveBeenLastCalledWith(worker);
 	});
 
-	it('should support executables with spaces', async () => {
+	it('should support executables with spaces and quotes', async () => {
 		const worker = new Worker();
 
 		const request: Request<ReportType.Diagnostic> = {
@@ -212,7 +212,7 @@ describe('Worker', () => {
 			documentContent: '<?php class Test {}',
 			options: {
 				// Since we use custom reports, adding `-s` for sources won't break anything.
-				executable: phpcsPath + ' -s',
+				executable: '"' + phpcsPath + '" -s',
 				standard: 'PSR12',
 				autoloadPHPCSIntegration: false,
 			},
