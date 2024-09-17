@@ -30,25 +30,10 @@ describe('Worker', () => {
 			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
-		const logPath = resolvePath(
-			__dirname,
-			'..',
-			'..',
-			'..',
-			'vendor',
-			'bin'
-		);
-
-		console.log(
-			child_process.execSync('pwd', {
-				encoding: 'utf-8',
-			}),
-			child_process.execSync('ls -la ' + logPath, { encoding: 'utf-8' })
-		);
-
 		try {
 			child_process.execFileSync(phpcsPath, ['--version']);
 		} catch (e) {
+			console.log( e );
 			throw new Error(
 				'PHPCS could not be found at "' +
 					phpcsPath +
