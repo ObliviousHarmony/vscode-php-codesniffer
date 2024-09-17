@@ -31,7 +31,9 @@ describe('Worker', () => {
 		);
 
 		try {
-			child_process.execFileSync(phpcsPath, ['--version']);
+			child_process.execFileSync(phpcsPath, ['--version'], {
+				shell: true,
+			});
 		} catch (e) {
 			console.log(e);
 			throw new Error(

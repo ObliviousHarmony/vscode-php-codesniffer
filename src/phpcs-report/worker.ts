@@ -274,6 +274,8 @@ export class Worker {
 				}),
 			},
 			windowsHide: true,
+			// Node requires that the shell option be used on Windows to execute batch scripts.
+			shell: process.platform === 'win32' ? true : false,
 		};
 
 		// Make sure PHPCS knows to read from STDIN.

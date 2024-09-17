@@ -31,7 +31,9 @@ describe('Worker/WorkerPool Integration', () => {
 		);
 
 		try {
-			child_process.execFileSync(phpcsPath, ['--version']);
+			child_process.execFileSync(phpcsPath, ['--version'], {
+				shell: true,
+			});
 		} catch (e) {
 			throw new Error(
 				'PHPCS could not be found at "' +
