@@ -40,8 +40,6 @@ export class PHPCSError extends Error {
 		this.output = output;
 		this.errorOutput = errorOutput;
 
-		console.log(output, errorOutput);
-
 		// Depending on the type of error we may want to perform some processing.
 		const match = this.errorOutput.match(
 			/Uncaught InvalidArgumentException: (The extension[^)]+)/
@@ -220,6 +218,7 @@ export class Worker {
 			quotes: supportedQuotes,
 			brackets: false,
 			separator: ' ',
+			keep: () => true,
 		});
 		if (!parsedExecutable.length) {
 			throw new Error('No executable was given.');
