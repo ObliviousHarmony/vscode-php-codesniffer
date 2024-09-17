@@ -30,11 +30,20 @@ describe('Worker', () => {
 			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
+		const logPath = resolvePath(
+			__dirname,
+			'..',
+			'..',
+			'..',
+			'vendor',
+			'bin'
+		);
+
 		console.log(
 			child_process.execSync('pwd', {
 				encoding: 'utf-8',
 			}),
-			child_process.execSync('ls -la ' + __dirname, { encoding: 'utf-8' })
+			child_process.execSync('ls -la ' + logPath, { encoding: 'utf-8' })
 		);
 
 		try {
