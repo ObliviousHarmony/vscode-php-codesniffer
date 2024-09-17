@@ -164,7 +164,8 @@
     ]
   },
   "dependencies": {
-    "minimatch": "^5.1.2"
+    "minimatch": "^5.1.2",
+    "split-string": "^6.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

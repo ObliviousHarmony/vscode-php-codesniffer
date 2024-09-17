@@ -1,6 +1,7 @@
 import { ChildProcess, spawn, SpawnOptionsWithoutStdio } from 'child_process';
 import { resolve as resolvePath } from 'path';
 import { CancellationError, CancellationToken, Disposable } from 'vscode';
+import * as splitString from 'split-string';
 import { Request } from './request';
 import { ReportType, Response } from './response';
 import { PHPCS_INTEGRATION_VERSION } from '../services/configuration';
@@ -209,25 +210,27 @@ export class Worker {
 			'1',
 		];
 
-		// Since the executable may also include arguments, we need to break the given option
-		// apart and track the specific process and add the args to the array we will use
-		// to spawn the process. We will break on spaces but also support quoted strings.
-		const executableMatches = request.options.executable.match(
-			/`((?:[^`\\]|\\`)*)`|'((?:[^'\\]|\\')*)'|"((?:[^"\\]|\\")*)"|([^\s"]+)/g
-		);
-		if (!executableMatches) {
+		// We support the use of arguments in the executable option. This allows for
+		// users to build more complex commands such as those that should be ran
+		// in a container or with specific arguments.
+		const parsedExecutable = splitString(request.options.executable, {
+			quotes: ['"', "'"],
+			brackets: false,
+			separator: ' ',
+		});
+		if (!parsedExecutable.length) {
 			throw new Error('No executable was given.');
 		}
 
 		// The first segment will always be the executable.
-		const executable = executableMatches.shift();
+		const executable = parsedExecutable.shift();
 		if (!executable) {
 			throw new Error('No executable was given.');
 		}
 
 		// Any remaining matches will be arguments that we pass to the executable.
 		// Make sure to add them to the front so it runs PHPCS correctly.
-		processArguments.unshift(...executableMatches);
+		processArguments.unshift(...parsedExecutable);
 
 		// Only set the standard when the user has selected one.
 		if (request.options.standard) {
