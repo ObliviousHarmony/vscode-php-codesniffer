@@ -40,6 +40,8 @@ export class PHPCSError extends Error {
 		this.output = output;
 		this.errorOutput = errorOutput;
 
+		console.log(output, errorOutput);
+
 		// Depending on the type of error we may want to perform some processing.
 		const match = this.errorOutput.match(
 			/Uncaught InvalidArgumentException: (The extension[^)]+)/
