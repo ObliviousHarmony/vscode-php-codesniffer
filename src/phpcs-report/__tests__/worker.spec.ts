@@ -33,7 +33,7 @@ describe('Worker', () => {
 		try {
 			child_process.execFileSync(phpcsPath, ['--version']);
 		} catch (e) {
-			console.log( e );
+			console.log(e);
 			throw new Error(
 				'PHPCS could not be found at "' +
 					phpcsPath +
