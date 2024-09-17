@@ -2,9 +2,9 @@
 	"compilerOptions": {
         "rootDir": "src",
 		"outDir": "dist",
-		"target": "es2017",
+		"target": "es2022",
 		"module": "commonjs",
-		"lib": [ "ES2017" ],
+		"lib": [ "ES2022" ],
 		"sourceMap": true,
 		"noImplicitAny": true,
 		"noImplicitReturns": true,
