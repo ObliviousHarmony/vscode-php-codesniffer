@@ -18,6 +18,7 @@
 /README.md          export-ignore
 /CHANGELOG.md       export-ignore
 /src                export-ignore
+/types              export-ignore
 /package.json       export-ignore
 /package-lock.json  export-ignore
 /node_modules       export-ignore

@@ -3,6 +3,7 @@
 node_modules/
 vendor/
 src/
+types/
 .eslintrc.json
 jest.config.json
 tsconfig.json
