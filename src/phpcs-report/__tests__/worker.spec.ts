@@ -30,6 +30,13 @@ describe('Worker', () => {
 			process.platform === 'win32' ? 'phpcs.bat' : 'phpcs'
 		);
 
+		console.log(
+			child_process.execSync('pwd', {
+				encoding: 'utf-8',
+			}),
+			child_process.execSync('ls -la ' + __dirname, { encoding: 'utf-8' })
+		);
+
 		try {
 			child_process.execFileSync(phpcsPath, ['--version']);
 		} catch (e) {
