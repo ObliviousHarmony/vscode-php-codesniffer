@@ -115,7 +115,6 @@
             "Allows PHPCS to decide the coding standard.",
             "Searches for a coding standard configuration file in the current document's folder and parent directories.",
             "Uses the PEAR coding standard.",
-            "Uses the MySource coding standard.",
             "Uses the Squiz coding standard.",
             "Uses the PSR-1 coding standard.",
             "Uses the PSR-12 coding standard,",
