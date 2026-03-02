@@ -58,11 +58,24 @@ class File extends BaseFile
         // Populate from the original file.
         $this->content = $phpcsFile->content;
         $this->tokens = $phpcsFile->tokens;
+
+        // tokenizerType was removed in PHPCS 4.x (only PHP tokenizer remains).
+        if (property_exists($phpcsFile, 'tokenizerType')) {
+        	$this->tokenizerType = $phpcsFile->tokenizerType;
+        }
+
         $this->tokenizerType = $phpcsFile->tokenizerType;
         $this->tokenizer = $phpcsFile->tokenizer;
         $this->eolChar = $phpcsFile->eolChar;
         $this->numTokens = $phpcsFile->numTokens;
-        $this->fixableCount = $phpcsFile->fixableCount;
+
+        // fixableCount was split into fixableErrorCount + fixableWarningCount in PHPCS 4.x.
+        if (property_exists($this, 'fixableCount')) {
+        	$this->fixableCount = $phpcsFile->fixableCount;
+        } else {
+        	$this->fixableErrorCount = $phpcsFile->fixableErrorCount;
+        	$this->fixableWarningCount = $phpcsFile->fixableWarningCount;
+        }
 
         parent::__construct($phpcsFile->path, $phpcsFile->ruleset, $phpcsFile->config);
 
