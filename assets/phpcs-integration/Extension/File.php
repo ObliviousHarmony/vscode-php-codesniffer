@@ -64,7 +64,6 @@ class File extends BaseFile
         	$this->tokenizerType = $phpcsFile->tokenizerType;
         }
 
-        $this->tokenizerType = $phpcsFile->tokenizerType;
         $this->tokenizer = $phpcsFile->tokenizer;
         $this->eolChar = $phpcsFile->eolChar;
         $this->numTokens = $phpcsFile->numTokens;
