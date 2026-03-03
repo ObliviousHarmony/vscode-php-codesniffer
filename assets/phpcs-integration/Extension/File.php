@@ -61,7 +61,7 @@ class File extends BaseFile
 
         // tokenizerType was removed in PHPCS 4.x (only PHP tokenizer remains).
         if (property_exists($phpcsFile, 'tokenizerType')) {
-        	$this->tokenizerType = $phpcsFile->tokenizerType;
+            $this->tokenizerType = $phpcsFile->tokenizerType;
         }
 
         $this->tokenizer = $phpcsFile->tokenizer;
@@ -70,10 +70,10 @@ class File extends BaseFile
 
         // fixableCount was split into fixableErrorCount + fixableWarningCount in PHPCS 4.x.
         if (property_exists($this, 'fixableCount')) {
-        	$this->fixableCount = $phpcsFile->fixableCount;
+            $this->fixableCount = $phpcsFile->fixableCount;
         } else {
-        	$this->fixableErrorCount = $phpcsFile->fixableErrorCount;
-        	$this->fixableWarningCount = $phpcsFile->fixableWarningCount;
+            $this->fixableErrorCount = $phpcsFile->fixableErrorCount;
+            $this->fixableWarningCount = $phpcsFile->fixableWarningCount;
         }
 
         parent::__construct($phpcsFile->path, $phpcsFile->ruleset, $phpcsFile->config);
